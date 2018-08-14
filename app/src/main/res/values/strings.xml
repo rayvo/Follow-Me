@@ -1,0 +1,212 @@
+<resources>
+    <string name="app_name">Follow Me!</string>
+    <string name="welcome_text">Welcome to Follow Me!</string>
+    <string name="splash_text">Designed by CEWIT Korea, 2018</string>
+    <string name="main">Looking For A Tour Guide?</string>
+    <string name="country">Country:</string>
+    <string name="city">City:</string>
+    <string name="start_date">Start Date</string>
+    <string name="end_date">End Date</string>
+    <string name="select_date">Select Date...</string>
+    <string name="default_start_time">8:00 AM</string>
+    <string name="default_end_time">8:00 PM</string>
+    <string name="mean">Transport</string>
+    <string name="is_by_bus"></string>
+    <string name="is_by_car"></string>
+    <string name="tour_summary_tab">SUMMARY</string>
+    <string name="tour_diagram_tab">DIAGRAM</string>
+
+    <string-array name="countries">
+        <item>South Korea</item>
+        <item>Australia</item>
+        <item>China</item>
+        <item>USA</item>
+        <item>Vietnam</item>
+    </string-array>
+
+    <array name="total_days">
+        <item>하루</item>
+        <item>1박2일</item>
+        <item>2박3일</item>
+        <item>3박4일</item>
+        <item>4박5일</item>
+        <item>5박6일</item>
+    </array>
+
+    <array name="cities">
+
+    </array>
+    <!--country: id,name-->
+    <string-array name="country">
+        <item>1,South Korea</item>
+        <item>2,Australia</item>
+        <item>3,China</item>
+        <item>4,USA</item>
+        <item>5,Vietnam</item>
+    </string-array>
+
+    <!--city: id, name, countryId-->
+    <string-array name="city">
+        <item>1,Seoul,1</item>
+        <item>2,Busan,1</item>
+        <item>3,Incheon,1</item>
+        <item>4,Daegu,1</item>
+        <item>5,Daecheon,1</item>
+        <item>6,Suwon,1</item>
+
+        <item>7,Sydney,2</item>
+        <item>8,Melbourne,2</item>
+        <item>9,Perth,2</item>
+        <item>10,Gold Coast,2</item>
+        <item>11,Adelaide,2</item>
+        <item>12,Alice Springs,2</item>
+
+        <item>13,Bejing,3</item>
+        <item>14,Shanghai,3</item>
+        <item>15,Shenzhen,3</item>
+        <item>16,Tianjin,3</item>
+        <item>17,Guangzhou,3</item>
+        <item>18,Xian,3</item>
+
+        <item>19,New York City,4</item>
+        <item>20,Chicago,4</item>
+        <item>21,San Francisco,4</item>
+        <item>22,Los Angeles,4</item>
+        <item>23,Boston,4</item>
+        <item>24,Seattle,4</item>
+
+        <item>25,Ho Chi Minh City,5</item>
+        <item>26,Ha Noi,5</item>
+        <item>27,Hue,5</item>
+        <item>28,Da Nang,5</item>
+        <item>29,Nha Trang,5</item>
+        <item>30,Can Tho,5</item>
+        <item>31,Da Lat,5</item>
+        <item>32,Hai Phong,5</item>
+    </string-array>
+
+    <!--transport_type: id,type-->
+    <string-array name="transport_type">
+        <item>1,Bus</item>
+        <item>2,Subway</item>
+        <item>3,Car/Taxi</item>
+        <item>4,Motobike</item>
+        <item>5,Bike</item>
+        <item>6,Walk</item>
+        <item>7,Plane</item>
+        <item>8,Express Train</item>
+    </string-array>
+
+    <!--place: id,name,cityId,description,openTime,closeTime,entranceFee,address,contactPhone,requiredTime-->
+    <string-array name="place">
+        <item>1,Incheon International Airport (T1),3,TBD,24,24,0,Junggu Unseo-dong 2851, 1577-2600,0</item>
+        <item>2,Yeongjondo,3,Yeongjondo Island is an island off the west coast of the city of Incheon,24,24,0,TBD,TBD,0</item>
+        <item>3,Jayu Park,3,TBD,24,24,0,TBD,TBD,0</item>
+        <item>4,Incheon Chinatown,3,Bustling tourist and cultural district known for its Chinese-owned restaurants and businesses,24,24,0,TBD,TBD,0</item>
+        <item>5,Wolmido,3,Wolmido is an island one kilometer off the coast of South Korea near Incheon,24,24,0,TBD,TBD,0</item>
+        <item>6,Songdo Central Park,3,Park inspired by New York Central Park,24,24,0,TBD,TBD,0</item>
+    </string-array>
+
+    <!--stop: id,name,address-->
+    <string-array name="stop">
+        <item>1,Stop1,Address</item>
+        <item>2,Stop2,Address</item>
+        <item>3,Stop3,Address</item>
+        <item>4,Stop4,Address</item>
+        <item>5,Stop5,Address</item>
+        <item>6,Stop6,Address</item>
+        <item>7,Stop7,Address</item>
+        <item>8,Stop8,Address</item>
+        <item>9,Stop9,Address</item>
+        <item>10,Stop10,Address</item>
+    </string-array>
+
+    <!--place_stops:id,placeId,stopId-->
+    <string-array name="place_stop">
+        <item>1,1,1</item>
+        <item>2,2,2</item>
+        <item>3,3,3</item>
+        <item>4,4,4</item>
+        <item>5,5,5</item>
+        <item>6,6,6</item>
+        <item>7,7,7</item>
+        <item>8,8,8</item>
+        <item>9,9,9</item>
+        <item>10,10,10</item>
+    </string-array>
+
+    <!--tour: id, name, description, startTime, endTime, totalTime, distance, totalCost-->
+    <string-array name="tour">
+        <item>1,Incheon 1 day,Explore Incheon in one day,8:00,20:00,12,150,0</item>
+        <item></item>
+    </string-array>
+
+
+    <!--tour_city: id, tourId, cityId-->
+    <string-array name="tour_city">
+        <item>1,1,3</item>
+    </string-array>
+
+    <!--tour_place: id, tourId, placeId, placeIndex-->
+    <string-array name="tour_place">
+        <item>1,1,1,1</item>
+        <item>2,1,2,2</item>
+        <item>3,1,3,3</item>
+        <item>4,1,4,4</item>
+        <item>5,1,5,5</item>
+        <item>6,1,6,6</item>
+    </string-array>
+
+    <!--transport: id,name,transportType,departureStopId,arrivalStopId,distance,cost;-->
+    <string-array name="transport">
+        <item>1,6,1,1,2,5,1500</item>
+        <item>2,303,1,2,3,30,3000</item>
+        <item>3,8,1,3,4,8,1500</item>
+        <item>4,8,1,4,5,5,1500</item>
+        <item>5,61,1,5,6,15,1500</item>
+    </string-array>
+
+    <!--transports_time_schedule: id,transportId,departureTime,travelTime-->
+    <string-array name="transport_time_schedule">
+        <item>1,1,6:30,10</item>
+        <item>2,1,7:30,15</item>
+        <item>3,1,8:30,15</item>
+        <item>4,1,9:30,15</item>
+        <item>5,1,10:30,15</item>
+
+        <item>6,2,8:30,30</item>
+        <item>7,2,9:30,40</item>
+        <item>8,2,10:30,35</item>
+        <item>9,2,11:30,35</item>
+        <item>10,2,12:30,35</item>
+        <item>11,2,13:30,35</item>
+        <item>12,2,14:30,40</item>
+        <item>13,2,15:30,40</item>
+        <item>14,2,16:30,30</item>
+
+        <item>15,3,10:30,30</item>
+        <item>16,3,11:30,40</item>
+        <item>17,3,12:30,35</item>
+        <item>18,3,13:30,35</item>
+        <item>19,3,14:30,35</item>
+        <item>20,3,15:30,35</item>
+        <item>21,3,16:30,40</item>
+        <item>22,3,17:30,40</item>
+        <item>23,3,18:30,30</item>
+
+        <item>24,2,12:30,10</item>
+        <item>25,2,13:30,10</item>
+        <item>26,2,14:30,15</item>
+        <item>27,2,15:30,15</item>
+        <item>28,2,16:30,15</item>
+        <item>29,2,17:30,15</item>
+        <item>30,2,18:30,10</item>
+        <item>31,2,19:30,10</item>
+        <item>32,2,20:30,10</item>
+
+    </string-array>
+
+
+
+
+</resources>

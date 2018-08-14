@@ -1,0 +1,53 @@
+{
+  "cities": [
+
+    {
+      "country": "KR",
+      "name": "Ulsan",
+      "lat": "35.53722",
+      "lng": "129.31667"
+    },
+    {
+      "country": "KR",
+      "name": "Daejeon",
+      "lat": "36.32139",
+      "lng": "127.41972"
+    },
+    {
+      "country": "KR",
+      "name": "Daegu",
+      "lat": "35.87028",
+      "lng": "128.59111"
+    },
+    {
+      "country": "KR",
+      "name": "Suwon",
+      "lat": "37.29111",
+      "lng": "127.00889"
+    },
+    {
+      "country": "KR",
+      "name": "Seoul",
+      "lat": "37.566",
+      "lng": "126.9784"
+    },
+    {
+      "country": "KR",
+      "name": "Busan",
+      "lat": "35.10278",
+      "lng": "129.04028"
+    },
+    {
+      "country": "KR",
+      "name": "Incheon",
+      "lat": "37.45646",
+      "lng": "126.70515"
+    },
+    {
+      "country": "KR",
+      "name": "Jeju City",
+      "lat": "33.50972",
+      "lng": "126.52194"
+    }
+  ]
+}

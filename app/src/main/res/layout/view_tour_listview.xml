@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+
+    <TableLayout
+        android:id="@+id/tblTour"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:collapseColumns="0"> <!-- collapse the first column of the table row-->
+
+
+        <!-- first row of the table layout-->
+        <TableRow
+            android:id="@+id/row1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/ivPlaceImage"
+                android:layout_width="150dp"
+                android:layout_height="200dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginLeft="3dp"/>
+
+            <!-- Add elements/columns in the first row-->
+
+        </TableRow>
+    </TableLayout>
+
+<!--
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:background="#ffffff"
+        android:padding="15dp">
+
+        <TextView
+            android:id="@+id/tvPlaceName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="5dp"
+            android:textColor="#FF4760"
+            android:textSize="18dp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/ivPlaceImage"
+            android:layout_width="150dp"
+            android:layout_height="200dp"
+            android:layout_alignTop="@id/tvPlaceName"
+            android:layout_alignParentEnd="true"
+            android:layout_marginLeft="3dp"/>
+
+        <TextView
+            android:id="@+id/tvTravelInfo"
+            android:layout_width="192dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvPlaceName"
+            android:paddingLeft="5dp"
+            android:textColor="#333"
+            android:textStyle="italic"/>
+
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="193dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tvTravelInfo"
+            android:layout_toStartOf="@+id/ivPlaceImage"
+            android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:paddingLeft="5dp"
+            android:textColor="#333" />
+
+        <TextView
+            android:id="@+id/tvPlaceInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvDescription"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="10dp"
+            android:textColor="#333"
+            android:textStyle="italic" />
+
+
+
+    </RelativeLayout>-->
+
+</LinearLayout>
