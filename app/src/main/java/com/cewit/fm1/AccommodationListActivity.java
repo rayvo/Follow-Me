@@ -14,6 +14,10 @@ import com.cewit.fm1.models.Accommodation;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * Haseung has successfully got the code to work on his computer.
+ */
+
 public class AccommodationListActivity extends AppCompatActivity {
 
     private String TAG = AccommodationListActivity.class.getSimpleName();
