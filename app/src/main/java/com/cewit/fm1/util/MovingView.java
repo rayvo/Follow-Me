@@ -19,7 +19,7 @@ public class MovingView extends LinearLayout {
     private Place place;
     private TextView tvFrom;
     private TextView tvTo;
-    private ImageView ivIcon;
+    private TextView tvContent;
 
 
     public MovingView(Context context) {
@@ -29,8 +29,8 @@ public class MovingView extends LinearLayout {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.view_moving_item, this, true);
 
-        ivIcon = (ImageView) getChildAt(0).findViewById(R.id.ivIcon);
         tvFrom = (TextView) getChildAt(0).findViewById(R.id.tvFrom);
+        tvContent = (TextView) getChildAt(0).findViewById(R.id.tvContent);
         tvTo = (TextView) getChildAt(0).findViewById(R.id.tvTo);
     }
 
@@ -58,11 +58,11 @@ public class MovingView extends LinearLayout {
         this.tvTo = tvTo;
     }
 
-    public ImageView getIvIcon() {
-        return ivIcon;
+    public TextView getTvContent() {
+        return tvContent;
     }
 
-    public void setIvIcon(ImageView ivIcon) {
-        this.ivIcon = ivIcon;
+    public void setTvContent(TextView tvContent) {
+        this.tvContent = tvContent;
     }
 }

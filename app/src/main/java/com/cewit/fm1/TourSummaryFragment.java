@@ -392,7 +392,7 @@ public class TourSummaryFragment extends Fragment {
                 Transport transport = Utility.getTransport(travels,curPlace.getId(), nextPlace.getId(), preferTransportType);
                 int transportTime = transport.getTime();
                 strNextTime = Utility.computeTime(strCurTime, transportTime);
-                MovingView mvTime = getMovingView(strCurTime,strNextTime);
+                MovingView mvTime = getMovingView(strCurTime, strNextTime, "(" + Utility.formatTime(transportTime) + ")");
                 rowView.addView(mvTime);
                 //TODO add time spending at each place
                 strCurTime = Utility.computeTime(strNextTime, times.get(p+1).intValue());
@@ -401,7 +401,7 @@ public class TourSummaryFragment extends Fragment {
 
                 strFrom = curPlace.getName();
                 strTo = nextPlace.getName();
-                MovingView mvPlace = getMovingView(strFrom, strTo);
+                MovingView mvPlace = getMovingView(strFrom, strTo, "(" + Utility.formatDistance(transport.getDistance()) + ")");
                 rowView.addView(mvPlace);
 
                 TextView tvContent = new TextView(this.context);
@@ -430,17 +430,18 @@ public class TourSummaryFragment extends Fragment {
 
     }
 
-    private MovingView getMovingView(String strFrom, String strTo) {
+    private MovingView getMovingView(String strFrom, String strTo, String strConent) {
         MovingView view = new MovingView(this.context);
-        view.getIvIcon().setImageResource(R.drawable.down_arrow);
         view.getTvFrom().setText(strFrom);
+        view.getTvContent().setText(strConent);
+        view.getTvContent().setTextSize(12);
         view.getTvTo().setText(strTo);
 
 
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT, 0.2f);
-        view.getIvIcon().setLayoutParams(layoutParams);
+        /*view.getIvIcon().setLayoutParams(layoutParams);
         view.getIvIcon().getLayoutParams().height = 50;
-        view.getIvIcon().requestLayout();
+        view.getIvIcon().requestLayout();*/
         view.setGravity(Gravity.LEFT);
         return view;
     }

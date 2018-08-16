@@ -26,9 +26,13 @@ public class Place  {
     private String type;
     private boolean isFavorite;
 
+    //Will be updated later
+    private String resType;
+    private String accType;
 
     public Place() {
-
+        this.resType = "";
+        this.accType = "";
     }
 
     public Place(String id, String name, String address, String cityId, String contact, String site, String info, String email, long lat, long lng, int rate, String openTime, String closeTime, int entranceFee, List<Integer> imageIds, String type, boolean isFavorite) {
@@ -49,6 +53,8 @@ public class Place  {
         this.imageIds = imageIds;
         this.type = type;
         this.isFavorite = isFavorite;
+        this.resType = "";
+        this.accType = "";
     }
 
     public String getId() {
@@ -185,6 +191,22 @@ public class Place  {
 
     public void setFavorite(boolean favorite) {
         isFavorite = favorite;
+    }
+
+    public String getResType() {
+        return resType;
+    }
+
+    public void setResType(String resType) {
+        this.resType = resType;
+    }
+
+    public String getAccType() {
+        return accType;
+    }
+
+    public void setAccType(String accType) {
+        this.accType = accType;
     }
 }
 
