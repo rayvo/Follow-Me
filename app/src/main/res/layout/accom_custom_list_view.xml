@@ -34,7 +34,7 @@
             android:id="@+id/tvAccomNumber"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom ="@+id/ivAccomImage"
+            android:layout_alignBottom ="@+id/btnAccomSelect"
             android:layout_alignStart="@+id/tvAccomName"
             android:layout_weight="1"
             android:autoLink="phone"
@@ -51,6 +51,17 @@
             android:layout_weight="1"
             android:text="ZZZZ"
             android:textColor="#747474" />
+
+        <TextView
+            android:id="@+id/tvAccomDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/ivAccomStar"
+            android:layout_alignStart="@+id/ivAccomImage"
+            android:layout_weight="1"
+            android:text="QWERTY"
+            android:visibility="invisible"
+            android:textColor="#3a9ee6" />
 
         <Button
             android:id="@+id/btnAccomSelect"
