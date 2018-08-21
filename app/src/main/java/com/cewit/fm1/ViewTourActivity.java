@@ -433,7 +433,7 @@ public class ViewTourActivity extends AppCompatActivity {
             //view.setTvInfo(place.getInfo()); //TY
             String strName = place.getName();
             view.setPlace(place);
-            view.getIvIcon().setImageResource(R.drawable.place);
+            //view.getIvIcon().setImageResource(R.drawable.place);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -451,10 +451,10 @@ public class ViewTourActivity extends AppCompatActivity {
             view.setTvName("");
         }
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT);
-        view.getIvIcon().setLayoutParams(layoutParams);
-        view.getIvIcon().getLayoutParams().height = 80;
-        view.getIvIcon().getLayoutParams().width = 80;
-        view.getIvIcon().requestLayout();
+        //view.getIvIcon().setLayoutParams(layoutParams);
+        //view.getIvIcon().getLayoutParams().height = 80;
+        //view.getIvIcon().getLayoutParams().width = 80;
+        //view.getIvIcon().requestLayout();
         return view;
     }
 

@@ -30,16 +30,39 @@ public class Travel {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public int getDistance() {
+        return distance;
+    }
+
+    public void setDistance(int distance) {
+        this.distance = distance;
+    }
+
     public String getFrom() {
         return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
     }
 
     public String getTo() {
         return to;
     }
 
+    public void setTo(String to) {
+        this.to = to;
+    }
+
     public HashMap<String, Transport> getTransports() {
         return transports;
     }
 
+    public void setTransports(HashMap<String, Transport> transports) {
+        this.transports = transports;
+    }
 }

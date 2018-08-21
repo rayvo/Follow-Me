@@ -97,7 +97,7 @@ public class ChangePlaceActivity extends AppCompatActivity {
                                         newDays.put(strDay + (i+1),placeIdsPerDay);
                                     }
 
-                                    saveTour(tour.getName() + "(Modified)", tour.getInfo(), newDays, tour.getTimes(), tour.getStartTime(), tour.getImageIds(), tour.getCityId());
+                                   // saveTour(tour.getName() + "(Modified)", tour.getInfo(), newDays, tour.getTimes(), tour.getStartTime(), tour.getImageIds(), tour.getCityId());
 
                                 }
                             }

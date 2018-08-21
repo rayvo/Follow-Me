@@ -17,9 +17,10 @@ import com.cewit.fm1.models.Place;
  */
 
 public class PlaceView extends LinearLayout {
+
     private Place place;
     private TextView tvName;
-    private ImageView ivIcon;
+    //private ImageView ivIcon;
 
 
     public PlaceView(Context context) {
@@ -29,9 +30,8 @@ public class PlaceView extends LinearLayout {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.view_tour_place_item, this, true);
 
-        ivIcon = (ImageView) getChildAt(0).findViewById(R.id.ivIcon);
+        //ivIcon = (ImageView) getChildAt(0).findViewById(R.id.ivIcon);
         tvName = (TextView) getChildAt(0).findViewById(R.id.tvName);
-        tvName.setText("");
     }
 
     public void setTvName(String strName) {
@@ -39,13 +39,13 @@ public class PlaceView extends LinearLayout {
     }
 
 
-    public ImageView getIvIcon() {
+   /* public ImageView getIvIcon() {
         return ivIcon;
     }
 
     public void setIvIcon(ImageView ivIcon) {
         this.ivIcon = ivIcon;
-    }
+    }*/
 
     public Place getPlace() {
         return place;
@@ -62,4 +62,5 @@ public class PlaceView extends LinearLayout {
     public void setTvName(TextView tvName) {
         this.tvName = tvName;
     }
+
 }

@@ -26,6 +26,8 @@ public class TransportView extends LinearLayout {
     LinearLayout layoutTransport;
     private Travel travel;
     private TextView tvInfo;
+    private TextView tvFrom;
+    private TextView tvTo;
     private ImageView ivIcon;
     private View vLine;
 
@@ -44,6 +46,8 @@ public class TransportView extends LinearLayout {
 
         layoutTransport = (LinearLayout) getChildAt(0);
         ivIcon = (ImageView) getChildAt(0).findViewById(R.id.ivIcon);
+        tvFrom = (TextView) getChildAt(0).findViewById(R.id.tvFrom);
+        tvTo = (TextView) getChildAt(0).findViewById(R.id.tvTo);
         tvInfo = (TextView) getChildAt(0).findViewById(R.id.tvInfo);
         vLine = (View) getChildAt(0).findViewById(R.id.vLine);
 
@@ -248,5 +252,21 @@ public class TransportView extends LinearLayout {
 
         //strInfo = transport.getCost() + "/" + transport.getTime() + "/" + transport.getDistance();
         //tvInfo.setText(strInfo);
+    }
+
+    public TextView getTvFrom() {
+        return tvFrom;
+    }
+
+    public void setTvFrom(TextView tvFrom) {
+        this.tvFrom = tvFrom;
+    }
+
+    public TextView getTvTo() {
+        return tvTo;
+    }
+
+    public void setTvTo(TextView tvTo) {
+        this.tvTo = tvTo;
     }
 }

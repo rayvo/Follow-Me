@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -105,6 +106,9 @@ public class TourDiagramFragment extends Fragment {
         String tourSummary = "(" + Utility.formatCost(tour.getTotalCost()) + "/"
                 + Utility.formatDistance(tour.getTotalDistance()) + "/"
                 + Utility.formatTime(tour.getTotalTime()) + ")";
+
+        timeSchedules = tour.getTimes();
+        startTime = tour.getStartTime();
 
         //Check if the tour ended at the starting place or not
         if (days.get(strDay + 1).get(0).equals(days.get(strDay + days.size()).get(days.get(strDay + days.size()).size() - 1))) {
@@ -238,12 +242,17 @@ public class TourDiagramFragment extends Fragment {
     String strNextPlaceId;
     int preferTransportType = 1; // default = car.
 
+    private HashMap<String, List<Integer>> timeSchedules;
+    List<Integer> times;
+    String startTime;
+
     private void updateView(HashMap<String, List<Place>> detailDays, List<Travel> travels) {
         //Prepare places
         //View Preparation
         int numDays = detailDays.size();
         for (int i = 0; i < numDays; i++) {
             places = detailDays.get("Day " + (i + 1));
+            times = timeSchedules.get("Day " + (i+1));
             TableRow dayPartitionRow = new TableRow(activity.getApplicationContext());
             TableLayout.LayoutParams tableRowParamss1 =
                     new TableLayout.LayoutParams
@@ -278,6 +287,9 @@ public class TourDiagramFragment extends Fragment {
             boolean isSpecialRow = false;
             Travel curTravel = null;
 
+            String strCurTime = startTime;
+            String strPreTime = "";
+            String strNextTime;
             for (int r = 0; r < numRow; r++) {
                 TableRow row = new TableRow(activity.getApplicationContext());
                 TableLayout.LayoutParams tableRowParamss =
@@ -299,10 +311,22 @@ public class TourDiagramFragment extends Fragment {
                         case 2:
                         case 4:
                             if (placeIndex < places.size()) {
-                                Place place = places.get(placeIndex);
-                                curPlaceView = getPlaceView(place);
+                                Place curPlace = places.get(placeIndex);
+                                /*String strShowTime = "";
+                                if (!strPreTime.equals("")) {
+                                    Place prevPlace = places.get(placeIndex-1);
+                                    Transport transport = Utility.getTransport(travels, prevPlace.getId(), curPlace.getId(), preferTransportType);
+                                    int transportTime = transport.getTime();
+                                    strCurTime = Utility.computeTime(strPreTime, transportTime);
+                                    String strNewStartTime = Utility.computeTime(strCurTime, times.get(placeIndex));
+                                    strShowTime = strCurTime + "|" + strNewStartTime;
+                                } else {
+                                    strShowTime = strCurTime;
+                                }
+                                strPreTime = strCurTime;*/
+                                curPlaceView = getPlaceView(curPlace);
                                 row.addView(curPlaceView);
-                                strCurrentPlaceId = place.getId();
+                                strCurrentPlaceId = curPlace.getId();
                                 placeIndex++;
                             } else {
                                 isEnd = true;
@@ -322,10 +346,23 @@ public class TourDiagramFragment extends Fragment {
                                 curPlaceView = getPlaceView(null); //get Empty View
                                 revViews.add(curPlaceView);
                             } else {
-                                Place place = places.get(placeIndex);
-                                curPlaceView = getPlaceView(place);
+                                Place curPlace = places.get(placeIndex);
+                                /*String strShowTime = "";
+                                if (!strPreTime.equals("")) {
+                                    Place prevPlace = places.get(placeIndex-1);
+                                    Transport transport = Utility.getTransport(travels, prevPlace.getId(), curPlace.getId(), preferTransportType);
+                                    int transportTime = transport.getTime();
+                                    strCurTime = Utility.computeTime(strPreTime, transportTime);
+                                    String strNewStartTime = Utility.computeTime(strCurTime, times.get(placeIndex));
+                                    strShowTime = strCurTime + "|" + strNewStartTime;
+                                } else {
+                                    strShowTime = strCurTime;
+                                }
+                                strPreTime = strCurTime;*/
+                                curPlaceView = getPlaceView(curPlace);
+
                                 revViews.add(curPlaceView);
-                                strCurrentPlaceId = place.getId();
+                                strCurrentPlaceId = curPlace.getId();
                                 placeIndex++;
                             }
                             isSpecialRow = false;
@@ -420,7 +457,7 @@ public class TourDiagramFragment extends Fragment {
             //view.setTvInfo(place.getInfo()); //TY
             String strName = place.getName();
             view.setPlace(place);
-            view.getIvIcon().setImageResource(R.drawable.place);
+           // view.getIvIcon().setImageResource(R.drawable.place);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -432,21 +469,22 @@ public class TourDiagramFragment extends Fragment {
             if (strName.length() > 15) {
                 strName = strName.substring(0, 14) + "...";
             }
-            view.setTvName(strName); //TY
-        } else {
-            //view.setIvIcon(null);
-            view.setTvName("");
+            //view.getTvTime().setText(strTime);
+            view.getTvName().setText(strName);
         }
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT);
-        view.getIvIcon().setLayoutParams(layoutParams);
+       // view.getIvIcon().setLayoutParams(layoutParams);
         //view.getTvName().setLayoutParams(layoutParams);
 
         //view.getTvName().getLayoutParams().height = 80;
         //view.getTvName().getLayoutParams().width = 120;
 
-        view.getIvIcon().getLayoutParams().height = 80;
-        view.getIvIcon().getLayoutParams().width = 80;
-        view.getIvIcon().requestLayout();
+        //view.getIvIcon().getLayoutParams().height = 80;
+        //view.getIvIcon().getLayoutParams().width = 80;
+        //view.getIvIcon().requestLayout();
+        view.getTvName().getLayoutParams().width=120;
+        view.getTvName().getLayoutParams().height=120;
+       // view.getTvName().setLa
         return view;
     }
 
@@ -501,7 +539,7 @@ public class TourDiagramFragment extends Fragment {
             //view.setIvIcon(null);
             //view.setTvInfo("");
         }
-        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT);
         view.getIvIcon().setLayoutParams(layoutParams);
         view.getIvIcon().getLayoutParams().height = 120;
         view.getIvIcon().getLayoutParams().width = 80;
@@ -509,6 +547,17 @@ public class TourDiagramFragment extends Fragment {
         view.getTvInfo().setLayoutParams(layoutParams);
         view.getTvInfo().getLayoutParams().height = 100;
         view.getTvInfo().getLayoutParams().width = 120;
+
+        view.getTvFrom().setLayoutParams(layoutParams);
+        view.getTvFrom().getLayoutParams().height = 100;
+        view.getTvFrom().getLayoutParams().width = 80;
+
+        view.getTvTo().setLayoutParams(layoutParams);
+        view.getTvTo().getLayoutParams().height = 100;
+        view.getTvTo().getLayoutParams().width = 80;
+
+        view.getTvFrom().setText("8:00");
+        view.getTvTo().setText("9:20");
 
         layoutParams.setMargins(0, 0, 0, 0);
         view.setGravity(Gravity.CENTER_HORIZONTAL);

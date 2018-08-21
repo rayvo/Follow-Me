@@ -68,7 +68,7 @@ public class SplashScreen extends AppCompatActivity {
         refTours = mDatabase.getReference("tours");
 
 
-        final DatabaseReference refTravels = mDatabase.getReference("travels");
+        /*final DatabaseReference refTravels = mDatabase.getReference("travels");
         refTravels.orderByChild("from").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -102,7 +102,7 @@ public class SplashScreen extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        });*/
 
 
 
@@ -135,6 +135,64 @@ public class SplashScreen extends AppCompatActivity {
         //clearTours();
         //iniTours(); //TODO
         //iniCities();
+        //initTours();
+    }
+
+    private void initTours() {
+        String tourName = "Jeju Two-day Trip";
+        String tourInfo = "A 2-day tour of Jeju's most popular attractions";
+
+        HashMap<String, List<String>> tourDays = new HashMap<String, List<String>>();
+        List<String> placeIds1 = new ArrayList<String>();
+        placeIds1.add("jeju001");
+        placeIds1.add("jeju002");
+        placeIds1.add("r_jeju001");
+        placeIds1.add("jeju003");
+        placeIds1.add("jeju005");
+        placeIds1.add("r_jeju007");
+        placeIds1.add("h_jeju001");
+        tourDays.put("Day 1", placeIds1);
+
+        List<String> placeIds2 = new ArrayList<String>();
+        placeIds2.add("h_jeju001");
+        placeIds2.add("jeju006");
+        placeIds2.add("r_jeju004");
+        placeIds2.add("jeju007");
+        placeIds2.add("jeju012");
+        placeIds2.add("r_jeju006");
+        placeIds2.add("jeju001");
+        tourDays.put("Day 2", placeIds2);
+
+
+        HashMap<String, List<Integer>> tourTimes = new HashMap<String, List<Integer>>();
+        List<Integer> times1 = new ArrayList<Integer>();
+        times1.add(0);
+        times1.add(80);
+        times1.add(45);
+        times1.add(60);
+        times1.add(50);
+        times1.add(45);
+        times1.add(0);
+        tourTimes.put("Day 1", times1);
+
+
+        List<Integer> times2 = new ArrayList<Integer>();
+        times2.add(0);
+        times2.add(120);
+        times2.add(45);
+        times2.add(100);
+        times2.add(50);
+        times2.add(45);
+        times2.add(0);
+        tourTimes.put("Day 2", times2);
+
+        String strStartTime = "10:00";
+        String strCityId = "-LJ6r2bh6mlgxXJHghyU";
+        List<String> tourImageIds = new ArrayList<String>();
+        tourImageIds.add(R.drawable.jeju_island + "");
+
+
+        saveTour(tourName, tourInfo, tourDays, tourTimes, strStartTime, tourImageIds, strCityId);
     }
 
 
@@ -162,27 +220,32 @@ public class SplashScreen extends AppCompatActivity {
 
     List<Travel> travelsPerDay;
     HashMap<String, List<String>> tourDays;
+    HashMap<String, List<Integer>> tourTimes;
     int totalTime = 0;
     int totalCost = 0;
     int totalDistance = 0;
     List<String> tourImageIds;
-    List<String> cityIds;
+    String cityId;
     String tourId;
     String tourInfo;
     String tourName;
     String travelFrom;
     String travelTo;
+    private String startTime;
 
-    private void saveTour(String mTourName, String mTourInfo, HashMap<String, List<String>> mTourDays, List<String> mTourImageIds, List<String> mCityIds) {
+    private void saveTour(String mTourName, String mTourInfo, HashMap<String, List<String>> mTourDays, HashMap<String, List<Integer>> mTourTimes, String mStartTime, List<String> mTourImageIds, String mCityId) {
         tourId = refTours.push().getKey();
         tourImageIds = mTourImageIds;
-        cityIds = mCityIds;
+        cityId = mCityId;
         tourInfo = mTourInfo;
         tourName = mTourName;
         tourDays = mTourDays;
          totalTime = 0;
          totalCost = 0;
          totalDistance = 0;
+         tourTimes = mTourTimes;
+         startTime = mStartTime;
+
 
         for (int i = 0; i < mTourDays.size(); i++) { //Loop each day
             travelsPerDay = new ArrayList<Travel>();
@@ -217,13 +280,11 @@ public class SplashScreen extends AppCompatActivity {
                                 }
                                 travelsPerDay.add(travel);
 
-                                /*
-                                TODO
-                                Tour tour = new Tour(tourId, tourName, tourInfo, totalTime, totalCost, totalDistance, tourDays, tourImageIds, cityIds);
+                                Tour tour = new Tour(tourId, tourName, tourInfo, totalTime, totalCost, totalDistance, tourDays, tourTimes, startTime, tourImageIds, cityId);
                                 refTours = mDatabase.getReference("tours");
                                 refTours.child(tourId).setValue(tour);
                                 Toast.makeText(SplashScreen.this, "Tour added", Toast.LENGTH_LONG).show();
-                                Log.d(TAG, "Tour " + tourName + " added");*/
+                                Log.d(TAG, "Tour " + tourName + " added");
                             } else {
                                 Log.d(TAG, "Could not find any travel from " + travelFrom + " to " + travelTo);
                             }

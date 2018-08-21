@@ -35,4 +35,31 @@ public class City {
         return name;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setCountryId(String countryId) {
+        this.countryId = countryId;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLat() {
+        return lat;
+    }
+
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
+
+    public String getLng() {
+        return lng;
+    }
+
+    public void setLng(String lng) {
+        this.lng = lng;
+    }
 }

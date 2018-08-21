@@ -82,12 +82,12 @@ public class Utility {
                     switch (preferTransport) {
                         case 1: //car
                             for (Transport t: transports) {
-                                if (t.getType().equals("Car")) return t;
+                                if (t.getType().contains("Car")) return t;
                             }
                             break;
                         case 2: //bus
                             for (Transport t: transports) {
-                                if (t.getType().equals("Bus")) return t;
+                                if (t.getType().contains("Bus")) return t;
                             }
                             break;
                             default: // both
