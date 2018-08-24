@@ -1,12 +1,10 @@
 package com.cewit.fm1;
 
-import android.app.Activity;
-import android.app.FragmentTransaction;
+import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.TabItem;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
@@ -15,13 +13,13 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.cewit.fm1.models.Place;
@@ -39,6 +37,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -56,29 +55,21 @@ public class ViewTourActivity extends AppCompatActivity {
     // Layout
 
 
+    private Tour tour;
     private TabLayout tabLayout;
     private ViewPager viewPager;
 
-    private TextView tvTourInfo, tvTourSummary;
     private CheckBox chkBus, chkCarTaxi;
 
-    private PlaceView curPlaceView;
-    private TransportView curTransportView;
-
     //=================================================================
-    private List<Place> places;
 
     private HashMap<String, List<String>> days;
+    private HashMap<String, List<PlaceView>> placeViewHash;
+    private HashMap<String, List<TransportView>> transportViewHash;
+    private String strStartTime;
+    private HashMap<String, List<Integer>> times;
+    private int curPlaceId;
 
-    public HashMap<String, List<Place>> getDetailDays() {
-        return detailDays;
-    }
-
-    public void setDetailDays(HashMap<String, List<Place>> detailDays) {
-        this.detailDays = detailDays;
-    }
-
-    private  HashMap<String, List<Place>> detailDays;
     private List<Travel> travels;
 
     String strDay = "Day ";
@@ -86,13 +77,13 @@ public class ViewTourActivity extends AppCompatActivity {
     private List<Place> allPlaces;
     private HashSet<String> allPlaceIds;
     private List<String> sortedAllPlaceIds;
-    int totalPlaces = 1;
+    int totalPlaces = 0;
     boolean isCircularTour = false;
 
     private Intent intent;
     private String tourId;
-
-
+    private boolean isTimeChanged = false;
+    private int placeIndexChanged;
 
 
     int preferTransportType = 1; // default = car.
@@ -102,13 +93,17 @@ public class ViewTourActivity extends AppCompatActivity {
     String strNextPlaceId;
 
     private ViewPagerAdapter adapter;
+    private TextView tvTourInfo;
+    private TextView tvTourSummary;
+    private int transType = 0;
 
-    private void addTabs(ViewPager viewPager, Tour mTour) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), mTour);
+    private void addTabs(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFrag(new TourDiagramFragment(), "DIAGRAM");
         adapter.addFrag(new TourSummaryFragment(), "SUMMARY");
         viewPager.setAdapter(adapter);
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -139,17 +134,22 @@ public class ViewTourActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
-
-        //ViewPagerAdapter adapter = new ViewPagerAdapter(this.getApplicationContext(), getSupportFragmentManager());
-
+        //Departure Time Changed Request
+        String strChangedDepartureTime = intent.getStringExtra("CHANGE_DEPARTURE_TIME");
+        if (strChangedDepartureTime != null) {
+            //Create a temp tour with new modification time
+            placeIndexChanged = intent.getIntExtra("PLACE_INDEX", 0);
+            isTimeChanged = true;
+            //Load the new tour instead the current one
+        }
 
         //Give the TabLayout the ViewPage
-
-
+        adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         // Data Preparation
         tvTourInfo = (TextView) findViewById(R.id.tvTourInfo);
         tvTourSummary = (TextView) findViewById(R.id.tvTourSummary);
+
         chkBus = (CheckBox) findViewById(R.id.chkBus);
         chkCarTaxi = (CheckBox) findViewById(R.id.chkCar);
         //View Preparation
@@ -203,30 +203,10 @@ public class ViewTourActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot tourSnapshot : dataSnapshot.getChildren()) {
-                    Tour tour = tourSnapshot.getValue(Tour.class);
+                    tour = tourSnapshot.getValue(Tour.class);
                     if (tour != null) {
-
-                        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), tour);
-                        Fragment diagramFragment = TourDiagramFragment.newInstance(ViewTourActivity.this,tour);
-                        Bundle bundle1 = new Bundle();
-                        bundle1.putSerializable("TOUR", tour);
-                        bundle1.putString("id", tour.getId());
-                        bundle1.putInt("prefer_transport", preferTransportType);
-
-                        diagramFragment.setArguments(bundle1);
-                        adapter.addFrag(diagramFragment, "DIAGRAM VIEW");
-
-                        Fragment summaryFragment = TourSummaryFragment.newInstance(ViewTourActivity.this,tour);
-                        Bundle bundle2 = new Bundle();
-                        bundle2.putSerializable("TOUR", tour);
-                        bundle2.putString("id", tour.getId());
-                        bundle2.putInt("prefer_transport", preferTransportType);
-
-                        diagramFragment.setArguments(bundle2);
-                        adapter.addFrag(summaryFragment, "SUMMARY");
-                        viewPager.setAdapter(adapter);
-                        viewPager.setOffscreenPageLimit(2);
-                        tabLayout.setupWithViewPager(viewPager);
+                        //Create placeViewHash and transportViewHash
+                        createViewHash(tour);
                     }
                 }
             } //end data change of tour query
@@ -238,202 +218,109 @@ public class ViewTourActivity extends AppCompatActivity {
         });
 
 
-
     }
 
 
+    private void createViewHash(Tour tour) {
+        days = tour.getDays();
+        times = tour.getTimes();
+        strStartTime = tour.getStartTime();
+        allPlaces = new ArrayList<Place>();
 
-
-    private void updateView(HashMap<String, List<Place>> detailDays, List<Travel> travels) {
-        //Prepare places
-        //View Preparation
-
-
-        int numDays = detailDays.size();
-        for (int i = 0; i < numDays; i++) {
-            places = detailDays.get("Day " + (i + 1));
-            TableRow dayPartitionRow = new TableRow(this);
-            TableLayout.LayoutParams tableRowParamss1 =
-                    new TableLayout.LayoutParams
-                            (0, TableLayout.LayoutParams.WRAP_CONTENT);
-            dayPartitionRow.setBackgroundColor(Color.DKGRAY);
-            tableRowParamss1.setMargins(0, 0, 0, 10);
-            dayPartitionRow.setLayoutParams(tableRowParamss1);
-            TextView tvDayTitle = new TextView(this);
-            tvDayTitle.setText("Day " + (i + 1));
-            tvDayTitle.setTextSize(22);
-            tvDayTitle.setTextColor(Color.WHITE);
-
-            /*TextView tvEmpty = new TextView(this);
-            dayPartitionRow.addView(tvEmpty);*/
-            dayPartitionRow.addView(tvDayTitle);
-            //tourDiagramTable.addView(dayPartitionRow);
-
-
-            int totalPlaces = places.size();
-            int numRow;
-            int remainder = totalPlaces % 3;
-            if (remainder != 0) numRow = ((totalPlaces + 2) / 3) * 2 - 1;
-            else numRow = (totalPlaces / 3) * 2 - 1;
-
-
-            Log.d("TY-TEST:", "total places: " + totalPlaces + ", remainder: " + remainder + ", numRow: " + numRow);
-
-            int numCol = 5;
-            int cellIndex = 0;
-            int placeIndex = 0;
-            boolean isEnd = false;
-            boolean isSpecialRow = false;
-            Travel curTravel = null;
-
-            for (int r = 0; r < numRow; r++) {
-                TableRow row = new TableRow(this);
-                TableLayout.LayoutParams tableRowParamss =
-                        new TableLayout.LayoutParams
-                                (0, TableLayout.LayoutParams.WRAP_CONTENT);
-
-                row.setBackgroundColor(Color.parseColor("#62b0ff"));
-                tableRowParamss.setMargins(0, 0, 0, 10);
-                row.setLayoutParams(tableRowParamss);
-
-                int remain = (r + 2) % 4;
-                List<View> revViews = new ArrayList<>();
-                ;
-
-                for (int c = 0; c < numCol; c++) {
-                    int cellType = cellIndex % 20;
-                    switch (cellType) {
-                        case 0:
-                        case 2:
-                        case 4:
-                            if (placeIndex < places.size()) {
-                                Place place = places.get(placeIndex);
-                                curPlaceView = getPlaceView(place);
-                                row.addView(curPlaceView);
-                                strCurrentPlaceId = place.getId();
-                                placeIndex++;
-                            } else {
-                                isEnd = true;
-                                curPlaceView = getPlaceView(null); //get Empty View
-                                revViews.add(curPlaceView);
-                                row.addView(curPlaceView);
+        if (days != null && days.size() > 0) {
+            Log.d(TAG, "Number of days: " + days.size());
+            for (int i = 0; i < days.size(); i++) { //check each day
+                List<String> placeIds = days.get(strDay + (i + 1));
+                totalPlaces = totalPlaces + placeIds.size();
+                if (placeIds != null && placeIds.size() > 0) {
+                    Log.d(TAG, "Number of places in Day " + (i + 1) + " is " + placeIds.size());
+                    for (int p = 0; p < placeIds.size(); p++) {
+                        String placeId = placeIds.get(p);
+                        Log.d(TAG, "placeId: " + placeId);
+                        DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("places");
+                        refPlaces.orderByChild("id").equalTo(placeId).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                Iterator<DataSnapshot> iterator = dataSnapshot.getChildren().iterator();
+                                if (iterator.hasNext()) {
+                                    Place place = iterator.next().getValue(Place.class);
+                                    if (place != null) {
+                                        Log.d(TAG, "Added PlaceId:" + place.getId());
+                                        allPlaces.add(place);
+                                        countPlace = countPlace + 1;
+                                        if (countPlace == totalPlaces) { //obtained all of the places in all days
+                                            createViews();
+                                        }
+                                    } // if place != null
+                                } //loop
                             }
 
-                            isSpecialRow = false;
-                            break;
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                        case 10: //reversed row
-                        case 12:
-                        case 14:
-                            if (placeIndex >= places.size()) {
-                                isEnd = true;
-                                curPlaceView = getPlaceView(null); //get Empty View
-                                revViews.add(curPlaceView);
-                            } else {
-                                Place place = places.get(placeIndex);
-                                curPlaceView = getPlaceView(place);
-                                revViews.add(curPlaceView);
-                                strCurrentPlaceId = place.getId();
-                                placeIndex++;
                             }
-                            isSpecialRow = false;
-                            break;
-                        case 1:
-                        case 3:
-                            if (!isEnd && (placeIndex < places.size())) {
-                                strNextPlaceId = places.get(placeIndex).getId();
-                                curTravel = Utility.getTravel(travels, strCurrentPlaceId, strNextPlaceId);
-                                curTransportView = getTransportView(preferTransportType,  curTravel, 0);
-                                row.addView(curTransportView);
-                            } else {
-                                curPlaceView = getPlaceView(null); //get Empty View
-                                row.addView(curPlaceView);
-                            }
-                            isSpecialRow = false;
-                            break;
-                        case 5:
-                        case 6:
-                        case 7:
-                        case 8:
-                        case 16:
-                        case 17:
-                        case 18:
-                        case 19:
-                            curPlaceView = getPlaceView(null); //get Empty View
-                            row.addView(curPlaceView);
-                            isSpecialRow = true;
-                            break;
-                        case 9:
-                            if (placeIndex < places.size()) {
-                                strNextPlaceId = places.get(placeIndex).getId();
-                                curTravel = Utility.getTravel(travels, strCurrentPlaceId, strNextPlaceId);
-                                curTransportView = getTransportView(preferTransportType, curTravel, 1);
-                                row.addView(curTransportView);
-                            }
-                            isSpecialRow = true;
-                            break;
-                        case 11: //reversed row
-                        case 13:
-                            if (!isEnd && (placeIndex < places.size())) {
-                                strNextPlaceId = places.get(placeIndex).getId();
-                                curTravel = Utility.getTravel(travels, strCurrentPlaceId, strNextPlaceId);
-                                curTransportView = getTransportView(preferTransportType,  curTravel, 2);
-                                revViews.add(curTransportView);
-                            } else {
-                                curPlaceView = getPlaceView(null); //get Empty View
-                                revViews.add(curPlaceView);
-                            }
-                            break;
-                        case 15:
-                            if (!isEnd && (placeIndex < places.size())) {
-                                strNextPlaceId = places.get(placeIndex).getId();
-                                curTravel = Utility.getTravel(travels, strCurrentPlaceId, strNextPlaceId);
-                                curTransportView = getTransportView(preferTransportType, curTravel, 3);
-                                row.addView(curTransportView);
-                            } else {
-                                curPlaceView = getPlaceView(null); //get Empty View
-                                revViews.add(curPlaceView);
-                            }
-                            isSpecialRow = true;
-                            break;
-                    } //end for switch
-                    cellIndex++;
+                        });
 
-                } // end for col
-
-                for (int v = revViews.size() - 1; v >= 0; v--) {
-                    View iv = revViews.get(v);
-                    if (iv.getParent() != null) {
-                        ((ViewGroup) iv.getParent()).removeView(iv);
                     }
-                    row.addView(iv);
                 }
-               /* if (isSpecialRow) {
-                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
-                    params.setMargins(0, 500, 0, 0);
-                    row.setLayoutParams(params);
-                }*/
-               // tourDiagramTable.addView(row);
-            } // end for row
+            }
         }
+    }
 
-        TableRow tr = new TableRow(this);
-        TextView rang = new TextView(this);
-        rang.setGravity(Gravity.CENTER_HORIZONTAL);
-        //rang.setPadding(1, 1, 1, 1);
-        rang.setText("01234567890");
+    private int totalRequiredTravels;
+    private void createViews() {
+        placeViewHash = new HashMap<String,List<PlaceView>>();
+        travels = new ArrayList<Travel>();
+        totalRequiredTravels = allPlaces.size() - 1 - (days.size()-1);
+        for (int i = 0; i < days.size(); i++) { //check each day
+            List<String> placeIds = days.get(strDay + (i + 1));
 
-        tr.addView(rang);
-       // tourSummaryTable.addView(tr);//end for days
+            List<PlaceView> placeViews = new ArrayList<PlaceView>();
+
+            Place nextPlace = null;
+            for (int p = 0; p < placeIds.size(); p++) {
+                Place place = getPlace(placeIds.get(p));
+                PlaceView placeView = getPlaceView(place);
+                placeViews.add(placeView);
+
+                //For Transport used later
+                if (p<placeIds.size()-1) {
+                    nextPlace = getPlace(placeIds.get(p+1));
+                    String travelId = place.getId() + "_" + nextPlace.getId();
+                    DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("travels");
+                    refPlaces.orderByChild("id").equalTo(travelId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            Iterator<DataSnapshot> iterator = dataSnapshot.getChildren().iterator();
+                            if (iterator.hasNext()) {
+                                Travel travel = iterator.next().getValue(Travel.class);
+                                if (travel != null) {
+                                    travels.add(travel);
+                                    Log.d(TAG, "Added Travel with Id:" + travel.getId());
+                                }
+                            }
+
+                            if (travels.size() == totalRequiredTravels) {
+                                createTransportView();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+            }
+            placeViewHash.put(strDay + (i + 1), placeViews);
+        }
     }
 
     private PlaceView getPlaceView(Place place) {
         PlaceView view = new PlaceView(this.getApplicationContext());
         if (place != null) {
-            //view.setTvInfo(place.getInfo()); //TY
             String strName = place.getName();
             view.setPlace(place);
-            //view.getIvIcon().setImageResource(R.drawable.place);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -445,124 +332,216 @@ public class ViewTourActivity extends AppCompatActivity {
             if (strName.length() > 15) {
                 strName = strName.substring(0, 14) + "...";
             }
-            view.setTvName(strName); //TY
-        } else {
-            //view.setIvIcon(null);
-            view.setTvName("");
-        }
-        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT);
-        //view.getIvIcon().setLayoutParams(layoutParams);
-        //view.getIvIcon().getLayoutParams().height = 80;
-        //view.getIvIcon().getLayoutParams().width = 80;
-        //view.getIvIcon().requestLayout();
-        return view;
-    }
+            if (strName.length()<=3) {
+                strName = "\n " + strName;
 
-    private TransportView getTransportView(int transType, Travel travel, int direction) {
-        boolean isCar = true;
-        switch (transType) {
-            case 1: // car
-                isCar = true;
-                break;
-            case 2: // bus
-                isCar = false;
-                break;
-
-            default: //mix bus and car
-                int random = (Math.random() < 0.5) ? 0 : 1;
-                if (random == 0) {
-                    isCar = true;
-                } else {
-                    isCar = false;
-                }
-        }
-        TransportView view = new TransportView(this.getApplicationContext(), travel, direction, isCar);
-        if (travel != null) {
-            HashMap<String, Transport> transports = travel.getTransports();
-            String info = "";
-            Transport transport;
-            if (isCar) {
-                transport = transports.get("car01");
-                if (transport != null) {
-                    info = info + Utility.formatDistance(transport.getDistance()) + "\n";
-                    info = info + Utility.formatTime(transport.getTime()) + "\n";
-                    info = info + Utility.formatCost(transport.getCost());
-
-                }
-            } else {
-                transport = transports.get("bus01");
-                if (transport != null) {
-                    info = info + Utility.formatDistance(transport.getDistance()) + "\n";
-                    info = info + Utility.formatTime(transport.getTime()) + "\n";
-                    info = info + Utility.formatCost(transport.getCost());
-                }
             }
-            view.setTvInfo(info);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    TransportView myView = (TransportView) v;
-                    showPopupMenuTransport(myView);
-                }
-            });
-        } else {
-            //view.setIvIcon(null);
-            //view.setTvInfo("");
+            view.getTvName().setText(strName);
         }
-        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(0, TableLayout.LayoutParams.WRAP_CONTENT);
-        view.getIvIcon().setLayoutParams(layoutParams);
-        view.getIvIcon().getLayoutParams().height = 120;
-        view.getIvIcon().getLayoutParams().width = 80;
-        layoutParams.setMargins(0, 0, 0, 0);
-        view.setGravity(Gravity.CENTER_HORIZONTAL);
-        view.getIvIcon().requestLayout();
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(0,20,0,0);
+        view.getTvName().setLayoutParams(layoutParams);
+        view.getTvName().getLayoutParams().width=120;
+        view.getTvName().setGravity(Gravity.CENTER);
         return view;
     }
 
-    private int curPlaceId;
+
+    private String curTravelId;
+    private void createTransportView() {
+        transportViewHash = new HashMap<String,List<TransportView>>();
+
+        for (int i = 0; i < days.size(); i++) { //check each day
+            List<String> placeIds = days.get(strDay + (i + 1));
+            List<Integer> placeTimes = times.get(strDay + (i+1));
+            int transportIndex = 0;
+            String mDepartureTime = strStartTime;
+            List<TransportView> transportViews = new ArrayList<TransportView>();
+            for (int p = 0; p < placeIds.size()-1; p++) {
+                String travelId = placeIds.get(p) + "_" + placeIds.get(p+1);
+                curTravelId = travelId;
+                Travel travel = getTravel(travelId);
+
+                //Select transport type
+                boolean isCar = true;
+                switch (transType) {
+                    case 1: // car
+                        isCar = true;
+                        break;
+                    case 2: // bus
+                        isCar = false;
+                        break;
+
+                    default: //mix bus and car
+                        int random = (Math.random() < 0.5) ? 0 : 1;
+                        if (random == 0) {
+                            isCar = true;
+                        } else {
+                            isCar = false;
+                        }
+                }
+
+                HashMap<String, Transport> transports = travel.getTransports();
+                String info = "";
+                Transport transport;
+                int transTime = 0;
+                String strArrivalTime = "";
+
+                if (isCar) {
+                    transport = transports.get("car01");
+                    if (transport != null) {
+                        info = info + Utility.formatDistance(transport.getDistance()) + "/";
+                        transTime = transport.getTime();
+                        info = info + Utility.formatTime(transTime);
+                        strArrivalTime = Utility.computeTime(mDepartureTime, transTime);
+                    }
+                } else {
+                    transport = transports.get("bus01");
+                    if (transport != null) {
+                        info = info + Utility.formatDistance(transport.getDistance()) + "/";
+                        transTime = transport.getTime();
+                        info = info + Utility.formatTime(transTime);
+                        strArrivalTime = Utility.computeTime(mDepartureTime, transTime);
+                    }
+                }
+
+                int direction = computeDirection(transportIndex);
+                TransportView transportView = new TransportView(this, travel, direction, mDepartureTime, strArrivalTime, info, isCar);
+
+                transportView.getTvFrom().setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Get Current Time
+                        final Calendar c = Calendar.getInstance();
+                        int mHour = c.get(Calendar.HOUR_OF_DAY);
+                        int mMinute = c.get(Calendar.MINUTE);
+
+                        // Launch Time Picker Dialog
+                        TimePickerDialog timePickerDialog = new TimePickerDialog(ViewTourActivity.this,
+                                new TimePickerDialog.OnTimeSetListener() {
+
+                                    @Override
+                                    public void onTimeSet(TimePicker view, int hourOfDay,
+                                                          int minute) {
+                                        //tvFrom.setText(hourOfDay + ":" + minute);
+                                        ViewTourActivity.this.getIntent().putExtra("CHANGE_DEPARTURE_TIME", hourOfDay + ":" + minute);
+                                        ViewTourActivity.this.getIntent().putExtra("TRAVEL_ID", curTravelId);
+                                        ViewTourActivity.this.finish();
+                                        startActivity(ViewTourActivity.this.getIntent());
+                                    }
+                                }, mHour, mMinute, false);
+                        timePickerDialog.show();
+                    }
+                });
+
+                transportView.getTvTo().setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Get Current Time
+                        final Calendar c = Calendar.getInstance();
+                        int mHour = c.get(Calendar.HOUR_OF_DAY);
+                        int mMinute = c.get(Calendar.MINUTE);
+
+                        // Launch Time Picker Dialog
+                        TimePickerDialog timePickerDialog = new TimePickerDialog(ViewTourActivity.this,
+                                new TimePickerDialog.OnTimeSetListener() {
+
+                                    @Override
+                                    public void onTimeSet(TimePicker view, int hourOfDay,
+                                                          int minute) {
+                                        ViewTourActivity.this.getIntent().putExtra("CHANGE_DEPARTURE_TIME", hourOfDay + ":" + minute);
+                                        ViewTourActivity.this.getIntent().putExtra("TRAVEL_ID", curTravelId);
+                                        ViewTourActivity.this.finish();
+                                        startActivity(ViewTourActivity.this.getIntent());
+                                    }
+                                }, mHour, mMinute, false);
+                        timePickerDialog.show();
+                    }
+                });
+                if (direction == 2) {
+                    transportView.getTvTo().setClickable(true);
+                    transportView.getTvFrom().setClickable(false);
+                } else {
+                    transportView.getTvTo().setClickable(false);
+                    transportView.getTvFrom().setClickable(true);
+                }
+
+
+                mDepartureTime = Utility.computeTime(strArrivalTime, placeTimes.get(p));
+                transportViews.add(transportView);
+                transportIndex++;
+            }
+            transportViewHash.put(strDay + (i+1), transportViews);
+        }
+
+        Fragment diagramFragment = TourDiagramFragment.newInstance(ViewTourActivity.this, placeViewHash, transportViewHash);
+        Bundle bundle1 = new Bundle();
+        bundle1.putSerializable("PLACE_VIEW_HASH", placeViewHash);
+        bundle1.putSerializable("TRANSPORT_VIEW_HASH", transportViewHash);
+
+        diagramFragment.setArguments(bundle1);
+        adapter.addFrag(diagramFragment, "DIAGRAM VIEW");
+
+        Fragment summaryFragment = TourSummaryFragment.newInstance(ViewTourActivity.this, tour);
+        Bundle bundle2 = new Bundle();
+        bundle2.putSerializable("TOUR", tour);
+        bundle2.putString("id", tour.getId());
+        bundle2.putInt("prefer_transport", preferTransportType);
+
+        summaryFragment.setArguments(bundle2);
+        adapter.addFrag(summaryFragment, "SUMMARY");
+
+
+        Log.d(TAG, "487:" + placeViewHash.size()  + ", Day 1: " + placeViewHash.get(strDay + "1").size());
+        Log.d(TAG, "488:" + placeViewHash.size()  + ", Day 2: " + placeViewHash.get(strDay + "2").size());
+        viewPager.setAdapter(adapter);
+        viewPager.setOffscreenPageLimit(2);
+        tabLayout.setupWithViewPager(viewPager);
+
+    }
 
     private void showPopupMenuPlace(PlaceView v) {
-        setViewOnTouchColor(v);
-        PopupMenu menu = new PopupMenu(ViewTourActivity.this, v);
+        PopupMenu menu = new PopupMenu(this, v);
         Place p = v.getPlace();
         curPlaceId = v.getId();
-        menu.getMenu().add("Name: " + p.getName());
-        menu.getMenu().add("Information: " + p.getInfo());
-        menu.getMenu().add("Address: " + p.getAddress());
-        menu.getMenu().add("Contact Phone: " + p.getContact());
-        // menu.getMenu().add("Type: " + p.getType());
+
+
+        final String strSite = p.getSite();
+        menu.getMenu().add(p.getName());
+        menu.getMenu().getItem(0).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                ViewTourActivity.this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(strSite)));
+                return true;
+            }
+        });
+
+        menu.getMenu().add(p.getInfo());
+        menu.getMenu().add(p.getAddress());
+        menu.getMenu().add(p.getContact());
         menu.getMenu().add("Rate: " + p.getRate());
         menu.getMenu().add("Change");
         menu.getMenu().add("Skip");
 
-
-
-       /* menu.getMenu().add("Theme Park");
-        menu.getMenu().add("Museum");
-        menu.getMenu().add("Famous Sightseeing Spots");
-        menu.getMenu().add("Current Cultural Event");
-        menu.getMenu().add("Island");*/
-
-        //menu.getMenu().addSubMenu("Restaurant");
-
         menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(
-                        ViewTourActivity.this,
+                        ViewTourActivity.this.getApplicationContext(),
                         "You Clicked : " + item.getTitle(),
                         Toast.LENGTH_SHORT
                 ).show();
                 if (item.getTitle().equals("Skip")) {
-                    Intent intent = ViewTourActivity.this.getIntent();
+                    Intent intent =  new Intent(ViewTourActivity.this.getApplicationContext(), ViewTourActivity.class);
                     intent.putExtra("SKIP", "curPlaceId");
+                    ViewTourActivity.this.startActivities(new Intent[]{intent});
                 }
                 if (item.getTitle().equals("Change")) {
-                    Intent intent = new Intent(getApplicationContext(), ChangePlaceActivity.class);
-                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
+                    Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), ChangePlaceActivity.class);
+                    intent.putExtra(ActivityHelper.TOUR_ID, tour.getId());
                     intent.putExtra(ActivityHelper.OLD_PLACE_ID, curPlaceId);
-                    startActivities(new Intent[]{intent});
-                    finish();
+                    ViewTourActivity.this.startActivities(new Intent[]{intent});
+                    ViewTourActivity.this.finish();
                 }
                 return true;
             }
@@ -571,51 +550,39 @@ public class ViewTourActivity extends AppCompatActivity {
         menu.show();
     }
 
-    private void showPopupMenuTransport(View v) {
-        TransportView transportView = (TransportView) v;
-
-        setViewOnTouchColor(v);
-        PopupMenu menu = new PopupMenu(ViewTourActivity.this, v);
-
-        HashMap<String, Transport> transportsHash = transportView.getTravel().getTransports();
-        List<Transport> transports = new ArrayList<Transport>(transportsHash.values());
-        String strOption = "";
-        String transName, transDist, transCost, transTime;
-        for (Transport transport : transports) {
-            transName = transport.getName();
-            if (transName == null) transName = "";
-
-            transCost = transport.getCost() + "";
-            transCost = transCost.substring(0, transCost.length() - 3) + "," +
-                    transCost.substring(transCost.length() - 3);
-            transCost = transCost + "원";
-
-            transDist = ((float) transport.getDistance()) / 1000 + "Km";
-            transTime = transport.getTime() + "분";
-
-            strOption = transport.getType() + " " + transName + ": "
-                    + transDist + "/" + transTime + "/" + transCost;
-            menu.getMenu().add(strOption);
+    private int computeDirection(int transportIndex) {
+        int remain = transportIndex % 6;
+        switch (remain) {
+            case 0:
+            case 1:
+                return 0;
+            case 2:
+                return 1;
+            case 3:
+            case 4:
+                return 2;
+            case 5:
+                return 3;
         }
-
-        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Toast.makeText(
-                        ViewTourActivity.this,
-                        "You Clicked : " + item.getTitle(),
-                        Toast.LENGTH_SHORT
-                ).show();
-                restartActivity();
-                return true;
-            }
-        });
-
-        menu.show();
+        return 0;
     }
 
-    private void setViewOnTouchColor(View v) {
-        //v.setBackgroundColor(Color.rgb(255,0,0));
+    private Place getPlace(String placeId) {
+        if(allPlaces != null && allPlaces.size()>0) {
+            for (Place place : allPlaces) {
+                if (place.getId().equals(placeId)) return place;
+            }
+        }
+        return null;
+    }
+
+    private Travel getTravel(String travelId) {
+        if(travels != null && travels.size()>0) {
+            for (Travel travel : travels) {
+                if (travel.getId().equals(travelId)) return travel;
+            }
+        }
+        return null;
     }
 
     private void restartActivity() {
@@ -623,57 +590,4 @@ public class ViewTourActivity extends AppCompatActivity {
         this.finish();
     }
 
-    private enum NodeType {
-        FIRST_NODE,
-
-        RIGHT_NODE,
-        LEFT_NODE,
-        DOWN_NODE,
-
-        TOURISM_NODE,
-        RESTAURANT_NODE,
-        COFFEE_NODE,
-        HOTEL_NODE,
-
-        EMPTY_NODE
-    }
-
-
-    // View lookup cache
-    class ViewHolder {
-
-    }
-
-
-    /*@NonNull
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        View r = convertView;
-        ViewTourActivity.ViewHolder viewHolder = null;
-        if (r == null) {
-            LayoutInflater layoutInflater = context.getLayoutInflater();
-            r = layoutInflater.inflate(R.layout.view_tour_listview, null, true);
-            viewHolder = new ViewTourActivity.ViewHolder(r);
-            r.setTag(viewHolder); //store view
-        } else {
-            viewHolder = (ViewTourActivity.ViewHolder) r.getTag(); //get the store view
-        }
-
-        Place place = places.get(position);
-        viewHolder.tvPlaceName.setText(place.getName());
-        String placeInfo = place.getOpenTime() + " (" + place.getEntranceFee() + "KRW)";
-        viewHolder.tvPlaceInfo.setText(placeInfo);
-        viewHolder.tvDescription.setText(place.getInfo());
-
-        String travelInfo = "Bus";
-        //TODO create travelInfo randomly.
-        int busNum = (int) (Math.random() * ((500 - 100) + 1)) + 100;
-        int travelTime = (int) (Math.random() * ((120 - 15) + 1)) + 15;
-        travelInfo = travelInfo + " " + busNum + " (" + travelTime + "min)";
-        viewHolder.tvTravelInfo.setText(travelInfo);
-        // viewHolder.tvRatingStar.setText(place.getRatingStar());
-        //viewHolder.tvOpenTime.setText(place.getOpenTime());
-        viewHolder.ivCol1.setImageResource(place.getImageIds().get(0));
-        return r;
-
-    }*/
 }
