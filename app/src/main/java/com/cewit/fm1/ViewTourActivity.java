@@ -466,6 +466,14 @@ public class ViewTourActivity extends AppCompatActivity {
                     transportView.getTvFrom().setClickable(true);
                 }
 
+                transportView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        TransportView view = (TransportView) v;
+                        showPopupMenuTransport(view);
+                    }
+                });
+
 
                 mDepartureTime = Utility.computeTime(strArrivalTime, placeTimes.get(p));
                 transportViews.add(transportView);
@@ -491,9 +499,6 @@ public class ViewTourActivity extends AppCompatActivity {
         summaryFragment.setArguments(bundle2);
         adapter.addFrag(summaryFragment, "SUMMARY");
 
-
-        Log.d(TAG, "487:" + placeViewHash.size()  + ", Day 1: " + placeViewHash.get(strDay + "1").size());
-        Log.d(TAG, "488:" + placeViewHash.size()  + ", Day 2: " + placeViewHash.get(strDay + "2").size());
         viewPager.setAdapter(adapter);
         viewPager.setOffscreenPageLimit(2);
         tabLayout.setupWithViewPager(viewPager);
@@ -549,6 +554,55 @@ public class ViewTourActivity extends AppCompatActivity {
 
         menu.show();
     }
+
+    private void showPopupMenuTransport(View v) {
+        TransportView transportView = (TransportView) v;
+        PopupMenu menu = new PopupMenu(this.getApplicationContext(), v);
+
+        HashMap<String, Transport> transportsHash = transportView.getTravel().getTransports();
+        List<Transport> transports = new ArrayList<Transport>(transportsHash.values());
+        String strOption = "";
+        String transName, transDist, transCost, transTime;
+        for (Transport transport : transports) {
+            transName = transport.getName();
+            if (transName == null) transName = "";
+
+            transCost = transport.getCost() + "";
+            transCost = transCost.substring(0, transCost.length() - 3) + "," +
+                    transCost.substring(transCost.length() - 3);
+            transCost = transCost + "원";
+
+            transDist = ((float) transport.getDistance()) / 1000 + "Km";
+            transTime = transport.getTime() + "분";
+
+            strOption = transport.getType() + " " + transName + ": "
+                    + transDist + "/" + transTime + "/" + transCost;
+            menu.getMenu().add(strOption);
+        }
+        menu.getMenu().add("Add Place");
+        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Toast.makeText(
+                        ViewTourActivity.this.getApplicationContext(),
+                        "You Clicked : " + item.getTitle(),
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                if (item.getTitle().equals("Add Place")) {
+                    Intent intent =  new Intent( ViewTourActivity.this.getApplicationContext(), AddPlaceActivity.class);
+                    intent.putExtra(ActivityHelper.PREV_PLACE_ID, curPlaceId);
+                    ViewTourActivity.this.startActivities(new Intent[]{intent});
+                }
+                ViewTourActivity.this.startActivity( ViewTourActivity.this.getIntent());
+                ViewTourActivity.this.finish();
+                return true;
+            }
+        });
+
+        menu.show();
+    }
+
 
     private int computeDirection(int transportIndex) {
         int remain = transportIndex % 6;
