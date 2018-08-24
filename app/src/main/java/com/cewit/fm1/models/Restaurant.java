@@ -6,6 +6,8 @@ public class Restaurant extends Place {
 
     private String resType;
 
+    //Testing commit and pushes through VCS by Hawon Park
+
 
     //description is left blank
     //entranceFee is default 0
@@ -15,7 +17,7 @@ public class Restaurant extends Place {
     //stops was left null out of confusion
     public Restaurant(String id, String name, String address, String cityId, String contact, String site, String info, String email, long lat, long lng, int rate, String openTime, String closeTime, int entranceFee, List<Integer> imageIds, String type,  boolean isFavorite, String accType) {
         super(id, name, address, cityId, contact, site, info, email, lat, lng, rate, openTime, closeTime, entranceFee, imageIds, type, isFavorite);
-        this.resType = resType;
+        this.resType = accType;
     }
 
     public String getResType() {

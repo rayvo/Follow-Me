@@ -6,8 +6,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Switch;
 
 import com.cewit.fm1.models.Accommodation;
 
@@ -28,6 +30,7 @@ public class AccommodationListActivity extends AppCompatActivity {
     Button btnViewStarredOrAll;
     Spinner spnGu;
     Spinner spnType;
+    Switch sGPS;
 
 
     @Override
@@ -35,73 +38,48 @@ public class AccommodationListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.accom_list);
 
-
-        createHotelLists();
-
-        initItems();
-
-        //readHotelData();
-
-        setListAdapter();
-
-        setSpnGuAdapter();
-        setSpnTypeAdapter();
-
-        setListeners();
-
-        updateListToAll();
-        System.out.println("?????????????");
-
-    }
-
-    public void createHotelLists() {
         hotelSamples = new ArrayList<>();
         hotelStarredList = new ArrayList<>();
-    }
 
-    public void initItems() {
         spnGu = findViewById(R.id.spnGu);
         spnType = findViewById(R.id.spnType);
         list = findViewById(R.id.lvHotelList);
         btnViewStarredOrAll = findViewById(R.id.btnViewStarredOrAll);
+        sGPS = findViewById(R.id.sGPS);
 
-    }
-
-    public void setListAdapter() {
-        AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList);
+        // Set list adapter
+        AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList, sGPS.isChecked());
         list.setAdapter(customListView);
-    }
 
-    //TODO Get actual city/province data elsewhere instead of manually inputting it
-    public void setSpnGuAdapter() {
+        // Set spnGu adapter
+        // TODO Properly set spnGu data elsewhere instead of manually inputting it
         String[] temp = new String[]{
-                "Select Province", "연수구", "중구", "남동구"
+                "View All", "연수구", "중구", "남동구"
         };
-        ArrayAdapter<String> a = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, temp);
+        ArrayAdapter<String> a = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, temp);
         a.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnGu.setAdapter(a);
-    }
 
-    //TODO Get actual type data elsewhere instead of manually inputting it
-    public void setSpnTypeAdapter() {
-        String[] temp = new String[]{
-                "Select Type", "Hotel", "Guest House", "Motel"
+        // Set spnType adapter
+        // TODO Properly set spnType data elsewhere instead of manually inputting it
+        temp = new String[]{
+                "View All", "Hotel", "Guest House", "Motel"
         };
-        ArrayAdapter<String> a = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, temp);
-        a.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spnType.setAdapter(a);
-    }
+        ArrayAdapter<String> a1 = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, temp);
+        a1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spnType.setAdapter(a1);
 
-    public void setListeners() {
+        // Set Listeners
         btnViewStarredOrAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (btnViewStarredOrAll.getText().equals("View Starred Items")) {
                     btnViewStarredOrAll.setText("View All Items");
-                    updateListToStarred();
+                    filterCurrentList( true, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked() );
                 } else {
                     btnViewStarredOrAll.setText("View Starred Items");
-                    updateListToAll();
+                    filterCurrentList( false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked() );
+
                 }
             }
         });
@@ -110,7 +88,11 @@ public class AccommodationListActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String selectedItem = spnGu.getSelectedItem().toString();
-                updateListToFilters(selectedItem, spnType.getSelectedItem().toString());
+                if( btnViewStarredOrAll.getText().equals("View Starred Items") ){
+                    filterCurrentList(false, selectedItem, spnType.getSelectedItem().toString(), sGPS.isChecked());
+                } else {
+                    filterCurrentList(true, selectedItem, spnType.getSelectedItem().toString(), sGPS.isChecked());
+                }
             }
 
             @Override
@@ -123,7 +105,11 @@ public class AccommodationListActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String selectedItem = spnType.getSelectedItem().toString();
-                updateListToFilters(spnGu.getSelectedItem().toString(), selectedItem);
+                if (btnViewStarredOrAll.getText().equals("View Starred Items")) {
+                    filterCurrentList(false, spnGu.getSelectedItem().toString(), selectedItem, sGPS.isChecked());
+                } else {
+                    filterCurrentList(true, spnGu.getSelectedItem().toString(), selectedItem, sGPS.isChecked());
+    }
             }
 
             @Override
@@ -131,63 +117,78 @@ public class AccommodationListActivity extends AppCompatActivity {
 
             }
         });
+
+        sGPS.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked ) {
+                filterCurrentList(false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), isChecked);
+            }
+        });
+
+        filterCurrentList(false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked());
+
     }
 
 
-    public void updateListToStarred() {
+    public void filterCurrentList(boolean fav, String s, String t, boolean isChecked ){
+
+        AccommodationCustomListView customListView = null;
         List<Accommodation> temp = new ArrayList<>();
-        temp.addAll(hotelStarredList);
 
-        hotelStarredList.clear();
-        AccommodationCustomListView customListView = new AccommodationCustomListView(this, temp, hotelStarredList);
-        list.setAdapter(customListView);
-    }
-
-    public void updateListToAll() {
-        hotelStarredList.clear();
-        AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList);
-        list.setAdapter(customListView);
-    }
-
-    public void updateListToFilters(String s, String t) {
-        List<Accommodation> temp = new ArrayList<>();
-        if (s.equals("Select Province") && t.equals("Select Type")) {
-            if (btnViewStarredOrAll.getText().equals("View Starred Items")) {
-                updateListToAll();
+        if( !fav ){
+            if( s.equals("View All") && t.equals("View All") ) {
+                customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList, isChecked );
+            } else if( s.equals("View All") ) {
+                for (int i = 0; i < hotelSamples.size(); i++) {
+                    if (hotelSamples.get(i).getType().equals(t)) {
+                        temp.add(hotelSamples.get(i));
+                    }
+                }
+                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked);
+            } else if( t.equals("View All") ){
+                for( int i = 0; i < hotelSamples.size(); i++ ){
+                    if( hotelSamples.get(i).getAddress().contains(s) ){
+                        temp.add(hotelSamples.get(i));
+                    }
+                }
+                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
             } else {
-                updateListToStarred();
-            }
-        } else if (s.equals("Select Province")) {
-            for (int i = 0; i < hotelSamples.size(); i++) {
-                if (hotelSamples.get(i).getType().equals(t)) {
-                    temp.add(hotelSamples.get(i));
+                for( int i = 0; i < hotelSamples.size(); i++ ){
+                    if( hotelSamples.get(i).getAddress().contains(s) && hotelSamples.get(i).getType().equals(t) ){
+                        temp.add(hotelSamples.get(i));
+                    }
                 }
+                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
             }
-            hotelStarredList.clear();
-            AccommodationCustomListView customListView = new AccommodationCustomListView(this, temp, hotelStarredList);
-            list.setAdapter(customListView);
-        } else if (t.equals("Select Type")) {
-            for (int i = 0; i < hotelSamples.size(); i++) {
-                if (hotelSamples.get(i).getAddress().contains(s)) {
-                    temp.add(hotelSamples.get(i));
-                }
-            }
-            hotelStarredList.clear();
-            AccommodationCustomListView customListView = new AccommodationCustomListView(this, temp, hotelStarredList);
-            list.setAdapter(customListView);
         } else {
-            for (int i = 0; i < hotelSamples.size(); i++) {
-                if (hotelSamples.get(i).getAddress().contains(s) && hotelSamples.get(i).getType().equals(t)) {
-                    temp.add(hotelSamples.get(i));
+            if( s.equals("View All") && t.equals("View All") ) {
+                temp.addAll(hotelStarredList);
+                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+            } else if( s.equals("View All") ) {
+                for (int i = 0; i < hotelStarredList.size(); i++) {
+                    if (hotelStarredList.get(i).getType().equals(t)) {
+                        temp.add(hotelStarredList.get(i));
+                    }
                 }
+                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+            } else if( t.equals("View All") ){
+                for( int i = 0; i < hotelStarredList.size(); i++ ){
+                    if( hotelStarredList.get(i).getAddress().contains(s) ){
+                        temp.add(hotelStarredList.get(i));
+                    }
+                }
+                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+            } else {
+                for( int i = 0; i < hotelStarredList.size(); i++ ){
+                    if( hotelStarredList.get(i).getAddress().contains(s) && hotelStarredList.get(i).getType().equals(t) ){
+                        temp.add(hotelStarredList.get(i));
+                    }
+                }
+                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
             }
-            hotelStarredList.clear();
-            AccommodationCustomListView customListView = new AccommodationCustomListView(this, temp, hotelStarredList);
-            list.setAdapter(customListView);
         }
-    }
 
-    public void filterCurrentList(/**SOMETHING**/) {
+        list.setAdapter(customListView);
 
     }
 

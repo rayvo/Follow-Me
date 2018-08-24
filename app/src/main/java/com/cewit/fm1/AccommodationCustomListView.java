@@ -28,12 +28,14 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
     private List<Accommodation> dataSet;
     private List<Accommodation> favorites;
     private Activity context;
+    private boolean isGPSOn;
 
-    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet, List<Accommodation> favorites) {
+    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet, List<Accommodation> favorites, boolean isGPSOn) {
         super(context, R.layout.accom_custom_list_view, dataSet);
         this.context = context;
         this.dataSet = dataSet;
         this.favorites = favorites;
+        this.isGPSOn = isGPSOn;
     }
 
     private Accommodation accom;
@@ -68,6 +70,15 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
 
         viewHolder.tvAccomAddress.setText(accom.getAddress());
         viewHolder.tvAccomNumber.setText(accom.getContact());
+        viewHolder.tvAccomType.setText(accom.getAccType());
+
+        // TODO Properly set up gps and find distance
+        viewHolder.tvAccomDistance.setText("XX km");
+        if(isGPSOn){
+            viewHolder.tvAccomDistance.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.tvAccomDistance.setVisibility(View.INVISIBLE);
+        }
 
         int accomId = context.getResources().getIdentifier(accom.getId(), "drawable", context.getPackageName());
         viewHolder.ivAccomImage.setImageResource(accomId);
@@ -130,6 +141,7 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
         TextView tvAccomAddress;
         TextView tvAccomNumber;
         TextView tvAccomType;
+        TextView tvAccomDistance;
         ImageView ivAccomImage;
         ImageView ivAccomStar;
         Button btnAccomSelect;
@@ -139,6 +151,7 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
             tvAccomAddress = v.findViewById(R.id.tvAccomAddress);
             tvAccomNumber = v.findViewById(R.id.tvAccomNumber);
             tvAccomType = v.findViewById(R.id.tvAccomType);
+            tvAccomDistance = v.findViewById(R.id.tvAccomDistance);
             ivAccomImage = v.findViewById(R.id.ivAccomImage);
             ivAccomStar = v.findViewById(R.id.ivAccomStar);
             btnAccomSelect = v.findViewById(R.id.btnAccomSelect);
