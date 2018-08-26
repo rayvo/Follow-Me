@@ -32,13 +32,15 @@ public class AccommodationListActivity extends AppCompatActivity {
 
     private String TAG = AccommodationListActivity.class.getSimpleName();
 
-    List<Accommodation> hotelSamples = new ArrayList<>();
+    public List<Accommodation> hotelSamples;
     public List<Accommodation> hotelStarredList;
     ListView list;
     Button btnViewStarredOrAll;
     Spinner spnGu;
     Spinner spnType;
     Switch sGPS;
+
+    Accommodation forDB;
 
 
     @Override
@@ -55,7 +57,6 @@ public class AccommodationListActivity extends AppCompatActivity {
         btnViewStarredOrAll = findViewById(R.id.btnViewStarredOrAll);
         sGPS = findViewById(R.id.sGPS);
 
-        readAccomData();
 
         // Set list adapter
         AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList, sGPS.isChecked());
@@ -135,7 +136,8 @@ public class AccommodationListActivity extends AppCompatActivity {
             }
         });
 
-        filterCurrentList(false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked());
+        readAccomData();
+        //filterCurrentList(false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked());
 
     }
 
@@ -209,14 +211,15 @@ public class AccommodationListActivity extends AppCompatActivity {
         refPlaces.orderByChild("type").equalTo("Accommodation").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot tourSnapshot : dataSnapshot.getChildren()) {
-                    Accommodation temp = tourSnapshot.getValue(Accommodation.class);
-                    if(temp != null){
-                        hotelSamples.add(temp);
+                for (DataSnapshot accomSnapshot : dataSnapshot.getChildren()) {
+                    forDB = accomSnapshot.getValue(Accommodation.class);
+                    if(forDB !=null){
+                        hotelSamples.add(forDB);
                     }
                 }
+                AccommodationCustomListView customListView = new AccommodationCustomListView(AccommodationListActivity.this, hotelSamples, hotelStarredList, sGPS.isChecked());
+                list.setAdapter(customListView);
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 

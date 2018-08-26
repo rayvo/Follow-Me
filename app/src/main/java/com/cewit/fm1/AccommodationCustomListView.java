@@ -140,7 +140,7 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 Intent intent = new Intent(context, ViewTourActivity.class);
-                                //TODO IMPORTANT Add more intent extras here
+                                //TODO IMPORTANT Add more intent extras here and go back properly
                                 intent.putExtra("HOTEL_NAME", accomName);
                                 context.startActivity(intent);
 
