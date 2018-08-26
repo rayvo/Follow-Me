@@ -1,7 +1,9 @@
 package com.cewit.fm1;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
@@ -96,14 +98,14 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
 
         final ImageView ivhf = viewHolder.ivAccomStar;
         if (accom.isFavorite()) {
-            viewHolder.ivAccomStar.setImageResource(R.drawable.star_blank);
-            if (favorites.contains(accom)) {
-                favorites.remove(accom);
-            }
-        } else {
             viewHolder.ivAccomStar.setImageResource(R.drawable.star_filled);
             if (!favorites.contains(accom)) {
                 favorites.add(accom);
+            }
+        } else {
+            viewHolder.ivAccomStar.setImageResource(R.drawable.star_blank);
+            if (favorites.contains(accom)) {
+                favorites.remove(accom);
             }
         }
 
@@ -124,10 +126,40 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
         });
 
         // TODO when changing context send back proper info
+        final String accomName = dataSet.get(position).getName();
         viewHolder.btnAccomSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                context.startActivity(new Intent(context, MainActivity.class)); //TODO will return to the view tour activity.
+
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+                builder1.setMessage("Select " + accomName + "?");
+                builder1.setCancelable(true);
+
+                builder1.setPositiveButton(
+                        "Yes",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent(context, ViewTourActivity.class);
+                                //TODO IMPORTANT Add more intent extras here
+                                intent.putExtra("HOTEL_NAME", accomName);
+                                context.startActivity(intent);
+
+                                //dialog.cancel();
+                            }
+                        });
+
+                builder1.setNegativeButton(
+                        "No",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+                AlertDialog alert11 = builder1.create();
+                alert11.show();
+
+                //context.startActivity(new Intent(context, MainActivity.class)); //TODO will return to the view tour activity.
             }
         });
 

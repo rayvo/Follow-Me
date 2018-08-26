@@ -792,7 +792,7 @@ public class ViewTourActivity extends AppCompatActivity {
                     String placeType = curPlace.getType();
                     Intent intent;
                     if (placeType.equalsIgnoreCase("Accommodation")) {
-                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
+                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), AccommodationListActivity.class);
                     } else if (placeType.equalsIgnoreCase("Restaurant")) {
                         intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
                     } else {

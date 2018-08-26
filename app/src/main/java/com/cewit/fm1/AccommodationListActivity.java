@@ -1,6 +1,7 @@
 package com.cewit.fm1;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,7 +13,14 @@ import android.widget.Spinner;
 import android.widget.Switch;
 
 import com.cewit.fm1.models.Accommodation;
+import com.cewit.fm1.models.Tour;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.nio.channels.AcceptPendingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +32,7 @@ public class AccommodationListActivity extends AppCompatActivity {
 
     private String TAG = AccommodationListActivity.class.getSimpleName();
 
-    List<Accommodation> hotelSamples;
+    List<Accommodation> hotelSamples = new ArrayList<>();
     public List<Accommodation> hotelStarredList;
     ListView list;
     Button btnViewStarredOrAll;
@@ -46,6 +54,8 @@ public class AccommodationListActivity extends AppCompatActivity {
         list = findViewById(R.id.lvHotelList);
         btnViewStarredOrAll = findViewById(R.id.btnViewStarredOrAll);
         sGPS = findViewById(R.id.sGPS);
+
+        readAccomData();
 
         // Set list adapter
         AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList, sGPS.isChecked());
@@ -192,42 +202,29 @@ public class AccommodationListActivity extends AppCompatActivity {
 
     }
 
-    /*
-     * Currently reading from csv file.
-     */
-    /*private void readHotelData() {
+    private void readAccomData() {
 
-        InputStream is = getResources().openRawResource(R.raw.hotels);
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(is, Charset.forName("UTF-8"))
-        );
+        //Data Preparation
+        DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("places");
+        refPlaces.orderByChild("type").equalTo("Accommodation").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot tourSnapshot : dataSnapshot.getChildren()) {
+                    Accommodation temp = tourSnapshot.getValue(Accommodation.class);
+                    if(temp != null){
+                        hotelSamples.add(temp);
+                    }
+                }
+            }
 
-        String line;
-        try {
-            while ((line = br.readLine()) != null) {
-
-                String[] tokens = line.split(",");
-
-                Accommodation sample = new Accommodation(
-                        tokens[0],
-                        tokens[1],
-                        tokens[2],
-                        tokens[3],
-                        tokens[4],
-                        tokens[5],
-                        tokens[6],
-                        tokens[7],
-                        tokens[8]
-                );
-
-                hotelSamples.add(sample);
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        } catch (IOException e) {
-            Log.wtf("HotelListActivity", "Error reading hotels.csv file", e);
-            e.printStackTrace();
-        }
-    }*/
+        });
+
+
+    }
 }
 
 
