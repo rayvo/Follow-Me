@@ -103,10 +103,32 @@ public class Utility {
     public static String computeTime(String strCurTime, int transportTime) {
         int curHour = Integer.parseInt(strCurTime.substring(0,strCurTime.indexOf(":")));
         int curMin = Integer.parseInt(strCurTime.substring(strCurTime.indexOf(":") + 1));
-        int newMin = curMin + transportTime;
-        int newHour = curHour + newMin/60;
+
+        int newMin = curHour*60 + curMin + transportTime;
+        int newHour = newMin/60;
         newMin = newMin%60;
         if(newMin < 10) return newHour + ":0" + newMin;
         else return newHour + ":" + newMin;
+    }
+
+    public static int computeTimeDiffer(String newDepartureTime, String previousArrivalTime) {
+        int newHour = Integer.parseInt(newDepartureTime.substring(0,newDepartureTime.indexOf(":")));
+        int newMin = Integer.parseInt(newDepartureTime.substring(newDepartureTime.indexOf(":") + 1));
+
+        int prevHour = Integer.parseInt(previousArrivalTime.substring(0,previousArrivalTime.indexOf(":")));
+        int prevMin = Integer.parseInt(previousArrivalTime.substring(previousArrivalTime.indexOf(":") + 1));
+
+        return (newHour - prevHour) * 60 + (newMin - prevMin);
+    }
+
+    public static boolean isValidTimeChanged(String preArrivalTime, String newDepartureTime) {
+        int newHour = Integer.parseInt(newDepartureTime.substring(0,newDepartureTime.indexOf(":")));
+        int newMin = Integer.parseInt(newDepartureTime.substring(newDepartureTime.indexOf(":") + 1));
+
+        int prevHour = Integer.parseInt(preArrivalTime.substring(0,preArrivalTime.indexOf(":")));
+        int prevMin = Integer.parseInt(preArrivalTime.substring(preArrivalTime.indexOf(":") + 1));
+
+        return (newHour * 60 + newMin) > (prevHour*60+prevMin);
+
     }
 }

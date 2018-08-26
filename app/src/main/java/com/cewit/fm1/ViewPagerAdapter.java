@@ -19,11 +19,8 @@ public class ViewPagerAdapter<Tour> extends FragmentPagerAdapter {
     private final List<Fragment> mFragments = new ArrayList<>();
     private final List<String> mFragmentTitles = new ArrayList<>();
 
-    private com.cewit.fm1.models.Tour tour;
-
-    public ViewPagerAdapter(FragmentManager fm, com.cewit.fm1.models.Tour mTour) {
+    public ViewPagerAdapter(FragmentManager fm) {
         super(fm);
-        this.tour = mTour;
     }
 
     @Override

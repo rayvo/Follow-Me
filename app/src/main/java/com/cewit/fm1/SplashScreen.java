@@ -116,7 +116,7 @@ public class SplashScreen extends AppCompatActivity {
             initializeDB();
         }
 
-        /* TODO: Uncommented Later
+        */// TODO: Uncommented Later
         Thread myThread = new Thread() {
             @Override
             public void run() {
@@ -131,7 +131,7 @@ public class SplashScreen extends AppCompatActivity {
 
             }
         };
-        myThread.start();*/
+        myThread.start();
         //clearTours();
         //iniTours(); //TODO
         //iniCities();

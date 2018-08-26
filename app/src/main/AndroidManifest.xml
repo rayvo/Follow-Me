@@ -26,6 +26,9 @@
         <activity android:name=".SearchTourResultActivity" />
         <activity android:name=".ViewTourActivity" />
         <activity android:name=".ChangePlaceActivity" />
+        <activity android:name=".AddPlaceActivity" />
+        <activity android:name=".SelectPlaceActivity" />
+        <activity android:name=".AccommodationListActivity" />
     </application>
 
 </manifest>

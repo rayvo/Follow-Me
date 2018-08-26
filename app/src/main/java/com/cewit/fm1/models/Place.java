@@ -1,5 +1,6 @@
 package com.cewit.fm1.models;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -7,7 +8,7 @@ import java.util.List;
  * qvo@cs.stonybrook.edu
  */
 
-public class Place  {
+public class Place implements Serializable {
     private String id;
     private String name;
     private String address;

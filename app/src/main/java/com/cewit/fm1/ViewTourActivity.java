@@ -68,7 +68,6 @@ public class ViewTourActivity extends AppCompatActivity {
     private HashMap<String, List<TransportView>> transportViewHash;
     private String strStartTime;
     private HashMap<String, List<Integer>> times;
-    private int curPlaceId;
 
     private List<Travel> travels;
 
@@ -82,8 +81,6 @@ public class ViewTourActivity extends AppCompatActivity {
 
     private Intent intent;
     private String tourId;
-    private boolean isTimeChanged = false;
-    private int placeIndexChanged;
 
 
     int preferTransportType = 1; // default = car.
@@ -96,6 +93,7 @@ public class ViewTourActivity extends AppCompatActivity {
     private TextView tvTourInfo;
     private TextView tvTourSummary;
     private int transType = 0;
+    private String previousArrivalTime;
 
     private void addTabs(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -103,6 +101,26 @@ public class ViewTourActivity extends AppCompatActivity {
         adapter.addFrag(new TourSummaryFragment(), "SUMMARY");
         viewPager.setAdapter(adapter);
     }
+
+
+    //REFRESH VARIABLES:
+    private boolean isTimeChanged = false;
+    private int dayOfChangedTime;
+    private int placeOfChangedTime;
+    private int newChangedTime;
+    private String newDepartureTime;
+    private static List<String> changedTimes = new ArrayList<String>();
+
+
+    private boolean isSkipRefresh = false;
+    private static List<String> skippedPlaceIds = new ArrayList<String>();
+
+    private boolean isPlaceChanged = false;
+    private String prevPlaceId;
+    private String newPlaceId;
+    private String cityId;
+
+    private boolean isPlaceAdded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,14 +133,54 @@ public class ViewTourActivity extends AppCompatActivity {
         //Check the request
         intent = this.getIntent();
         tourId = intent.getStringExtra(ActivityHelper.TOUR_ID);
-        //Skip Request
-        String strSkipId = intent.getStringExtra(ActivityHelper.REFRESH_SKIP);
-        if (strSkipId != null && strSkipId.length() > 0) {
-        } else {
+
+        //Check if this is a refresh
+        int refreshMode = intent.getIntExtra(ActivityHelper.REFRESH_MODE, 0);
+        switch (refreshMode) {
+            case ActivityHelper.REFRESH_DEPARTURE_TIME_CHANGED:
+                Log.d(TAG, "REFRESH_DEPARTURE_TIME_CHANGED");
+                dayOfChangedTime = Integer.parseInt(intent.getStringExtra(ActivityHelper.DAY_OF_CHANGED_TIME));
+                placeOfChangedTime = Integer.parseInt(intent.getStringExtra(ActivityHelper.PLACE_OF_CHANGED_TIME));
+                if (placeOfChangedTime == 0) {
+                    newDepartureTime = intent.getStringExtra(ActivityHelper.NEW_DEPARTURE_TIME);
+                } else {
+                    newChangedTime = intent.getIntExtra(ActivityHelper.NEW_CHANGED_TIME, 0);
+                }
+                changedTimes.add(dayOfChangedTime + ":" + placeOfChangedTime + ":" + newChangedTime);
+                isTimeChanged = true;
+
+                break;
+
+            case ActivityHelper.REFRESH_SKIP:
+                Log.d(TAG, "REFRESH_SKIP");
+                String strSkippedPlaceId = intent.getStringExtra(ActivityHelper.PLACE_ID);
+                skippedPlaceIds.add(strSkippedPlaceId);
+                isSkipRefresh = true;
+                break;
+
+            case ActivityHelper.REFRESH_PLACE_CHANGED:
+                Log.d(TAG, "REFRESH_PLACE_CHANGED");
+                prevPlaceId = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
+                newPlaceId = intent.getStringExtra(ActivityHelper.NEW_PLACE_ID);
+                isPlaceChanged = true;
+                break;
+
+            case ActivityHelper.REFRESH_PLACE_ADDED:
+                Log.d(TAG, "REFRESH_PLACE_ADDED");
+                prevPlaceId = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
+                newPlaceId = intent.getStringExtra(ActivityHelper.NEW_PLACE_ID);
+                isPlaceAdded = true;
+                break;
+
+            default: //New Activity
         }
+
+        //TODO will be changed later
+        transType = 1;
+
         //Transport Changed Request
         int isBusSelected = 0, isCarSelected = 0;
-        int isTransportChanged = intent.getIntExtra(ActivityHelper.REFRESH_TRANSPORT_CHANGE, 0);
+        int isTransportChanged = intent.getIntExtra(ActivityHelper.REFRESH_TRANSPORT_CHANGED, 0);
         if (isTransportChanged == 0) { // no change, this is the original tour. All of transport types are selected
             isBusSelected = 1;
             isCarSelected = 1;
@@ -133,15 +191,6 @@ public class ViewTourActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
-        //Departure Time Changed Request
-        String strChangedDepartureTime = intent.getStringExtra("CHANGE_DEPARTURE_TIME");
-        if (strChangedDepartureTime != null) {
-            //Create a temp tour with new modification time
-            placeIndexChanged = intent.getIntExtra("PLACE_INDEX", 0);
-            isTimeChanged = true;
-            //Load the new tour instead the current one
-        }
 
         //Give the TabLayout the ViewPage
         adapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -206,6 +255,7 @@ public class ViewTourActivity extends AppCompatActivity {
                     tour = tourSnapshot.getValue(Tour.class);
                     if (tour != null) {
                         //Create placeViewHash and transportViewHash
+                        cityId = tour.getCityId();
                         createViewHash(tour);
                     }
                 }
@@ -224,6 +274,22 @@ public class ViewTourActivity extends AppCompatActivity {
     private void createViewHash(Tour tour) {
         days = tour.getDays();
         times = tour.getTimes();
+
+        //Check if this is a skip refresh
+        if (isSkipRefresh) {
+            updateData(ActivityHelper.REFRESH_SKIP);
+        }
+
+        //Check if this is a place change refresh
+        if (isPlaceChanged) {
+            updateData(ActivityHelper.REFRESH_PLACE_CHANGED);
+        }
+
+        //Check if this is a place add refresh
+        if (isPlaceAdded) {
+            updateData(ActivityHelper.REFRESH_PLACE_ADDED);
+        }
+
         strStartTime = tour.getStartTime();
         allPlaces = new ArrayList<Place>();
 
@@ -237,6 +303,7 @@ public class ViewTourActivity extends AppCompatActivity {
                     for (int p = 0; p < placeIds.size(); p++) {
                         String placeId = placeIds.get(p);
                         Log.d(TAG, "placeId: " + placeId);
+
                         DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("places");
                         refPlaces.orderByChild("id").equalTo(placeId).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -267,11 +334,98 @@ public class ViewTourActivity extends AppCompatActivity {
         }
     }
 
+    private void updateData(int updateMode) {
+        switch (updateMode) {
+            case ActivityHelper.REFRESH_SKIP:
+                for (String skippedPlaceId : skippedPlaceIds) {
+                    for (int i = 0; i < days.size(); i++) { //check each day
+                        List<String> placeIds = days.get(strDay + (i + 1));
+                        for (int j = 0; j < placeIds.size(); j++) {
+                            if (placeIds.get(j).equals(skippedPlaceId)) {
+                                days.get(strDay + (i + 1)).remove(j);
+                                times.get(strDay + (i + 1)).remove(j);
+
+                            }
+                        }
+
+                    }
+                }
+                break;
+            case ActivityHelper.REFRESH_PLACE_CHANGED:
+                for (int i = 0; i < days.size(); i++) { //check each day
+                    List<String> placeIds = days.get(strDay + (i + 1));
+                    for (int j = 0; j < placeIds.size(); j++) {
+                        if (placeIds.get(j).equals(prevPlaceId)) {
+                            days.get(strDay + (i + 1)).set(j, newPlaceId);
+                            break;
+                        }
+                    }
+
+                }
+                break;
+
+            case ActivityHelper.REFRESH_PLACE_ADDED:
+                List<String> remainPlaceIds = new ArrayList<String>();
+                boolean flag = false;
+
+                for (int i = 0; i < days.size(); i++) { //check each day
+
+                    List<String> placeIds = days.get(strDay + (i + 1));
+                    int numberOfPlaceIds = placeIds.size();
+                    String strTmp = "";
+                    Integer intTmp = null;
+
+                    for (int j = 0; j < numberOfPlaceIds; j++) {
+                        if (!flag) {
+                            if (placeIds.get(j).equals(prevPlaceId)) {
+                                if (j == numberOfPlaceIds - 1) {
+                                    days.get(strDay + (i + 1)).add(newPlaceId);
+                                    times.get(strDay + (i + 1)).set(numberOfPlaceIds - 1, 40);
+                                    times.get(strDay + (i + 1)).add(0); //TODO Will be modified later
+                                    break;
+                                }
+                                //Increase the list by duplicating the last element.
+                                String lastPlaceId = days.get(strDay + (i + 1)).get(numberOfPlaceIds - 1);
+                                days.get(strDay + (i + 1)).add(lastPlaceId);
+
+                                Integer lastTime = times.get(strDay + (i + 1)).get(numberOfPlaceIds - 1);
+                                times.get(strDay + (i + 1)).add(lastTime);
+
+                                //Backup the next element
+                                strTmp = days.get(strDay + (i + 1)).get(j + 1);
+                                intTmp = times.get(strDay + (i + 1)).get(j + 1);
+
+                                //Add new value to the next element.
+                                days.get(strDay + (i + 1)).set(j + 1, newPlaceId);
+                                times.get(strDay + (i + 1)).set(j + 1, 60);
+                                j++;
+
+                                flag = true;
+                                continue;
+                            }
+                        } else {
+                            String strTmp2 = days.get(strDay + (i + 1)).get(j);
+                            Integer intTmp2 = times.get(strDay + (i + 1)).get(j);
+                            days.get(strDay + (i + 1)).set(j, strTmp);
+                            times.get(strDay + (i + 1)).set(j, intTmp);
+                            strTmp = strTmp2;
+                            intTmp = intTmp2;
+                        }
+
+                    }
+                    break;
+                }
+        }
+
+    }
+
     private int totalRequiredTravels;
+
     private void createViews() {
-        placeViewHash = new HashMap<String,List<PlaceView>>();
+        placeViewHash = new HashMap<String, List<PlaceView>>();
         travels = new ArrayList<Travel>();
-        totalRequiredTravels = allPlaces.size() - 1 - (days.size()-1);
+        totalRequiredTravels = allPlaces.size() - 1 - (days.size() - 1);
+
         for (int i = 0; i < days.size(); i++) { //check each day
             List<String> placeIds = days.get(strDay + (i + 1));
 
@@ -279,13 +433,14 @@ public class ViewTourActivity extends AppCompatActivity {
 
             Place nextPlace = null;
             for (int p = 0; p < placeIds.size(); p++) {
+
                 Place place = getPlace(placeIds.get(p));
                 PlaceView placeView = getPlaceView(place);
                 placeViews.add(placeView);
 
                 //For Transport used later
-                if (p<placeIds.size()-1) {
-                    nextPlace = getPlace(placeIds.get(p+1));
+                if (p < placeIds.size() - 1) {
+                    nextPlace = getPlace(placeIds.get(p + 1));
                     String travelId = place.getId() + "_" + nextPlace.getId();
                     DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("travels");
                     refPlaces.orderByChild("id").equalTo(travelId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -332,34 +487,43 @@ public class ViewTourActivity extends AppCompatActivity {
             if (strName.length() > 15) {
                 strName = strName.substring(0, 14) + "...";
             }
-            if (strName.length()<=3) {
+            if (strName.length() <= 3) {
                 strName = "\n " + strName;
 
             }
             view.getTvName().setText(strName);
         }
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(0,20,0,0);
+        layoutParams.setMargins(0, 20, 0, 0);
         view.getTvName().setLayoutParams(layoutParams);
-        view.getTvName().getLayoutParams().width=120;
+        view.getTvName().getLayoutParams().width = 120;
         view.getTvName().setGravity(Gravity.CENTER);
         return view;
     }
 
 
-    private String curTravelId;
-    private void createTransportView() {
-        transportViewHash = new HashMap<String,List<TransportView>>();
+    private String curPlaceId;
+    private List<Integer> placeTimes;
 
-        for (int i = 0; i < days.size(); i++) { //check each day
-            List<String> placeIds = days.get(strDay + (i + 1));
-            List<Integer> placeTimes = times.get(strDay + (i+1));
+    private void createTransportView() {
+        transportViewHash = new HashMap<String, List<TransportView>>();
+
+        //Check if this is a refresh of changing departure time
+        if (isTimeChanged) {
+            if (placeOfChangedTime == 0) strStartTime = newDepartureTime;
+            else updateTimeSchedule();
+        }
+
+        for (int d = 0; d < days.size(); d++) { //check each day
+            List<String> placeIds = days.get(strDay + (d + 1));
+            placeTimes = times.get(strDay + (d + 1));
             int transportIndex = 0;
             String mDepartureTime = strStartTime;
+            previousArrivalTime = strStartTime;
             List<TransportView> transportViews = new ArrayList<TransportView>();
-            for (int p = 0; p < placeIds.size()-1; p++) {
-                String travelId = placeIds.get(p) + "_" + placeIds.get(p+1);
-                curTravelId = travelId;
+            for (int p = 0; p < placeIds.size() - 1; p++) {
+                String travelId = placeIds.get(p) + "_" + placeIds.get(p + 1);
+                curPlaceId = placeIds.get(p);
                 Travel travel = getTravel(travelId);
 
                 //Select transport type
@@ -407,6 +571,7 @@ public class ViewTourActivity extends AppCompatActivity {
 
                 int direction = computeDirection(transportIndex);
                 TransportView transportView = new TransportView(this, travel, direction, mDepartureTime, strArrivalTime, info, isCar);
+                transportView.getTvFrom().setTag(new String(d + ":" + p + ":" + placeTimes.get(p)));
 
                 transportView.getTvFrom().setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -415,6 +580,15 @@ public class ViewTourActivity extends AppCompatActivity {
                         final Calendar c = Calendar.getInstance();
                         int mHour = c.get(Calendar.HOUR_OF_DAY);
                         int mMinute = c.get(Calendar.MINUTE);
+                        TextView tvFrom = (TextView) v;
+                        final String prevDepartureTime = tvFrom.getText().toString();
+
+                        String strTag = (String) tvFrom.getTag();
+                        final String curDayIndex = strTag.substring(0, strTag.indexOf(":"));
+                        final String curPlaceIndex = strTag.substring(strTag.indexOf(":") + 1, strTag.lastIndexOf(":"));
+                        int curPlaceTime = Integer.parseInt(strTag.substring(strTag.lastIndexOf(":") + 1));
+
+                        final String prevArrivalTime = Utility.computeTime(prevDepartureTime, curPlaceTime * (-1));
 
                         // Launch Time Picker Dialog
                         TimePickerDialog timePickerDialog = new TimePickerDialog(ViewTourActivity.this,
@@ -424,16 +598,33 @@ public class ViewTourActivity extends AppCompatActivity {
                                     public void onTimeSet(TimePicker view, int hourOfDay,
                                                           int minute) {
                                         //tvFrom.setText(hourOfDay + ":" + minute);
-                                        ViewTourActivity.this.getIntent().putExtra("CHANGE_DEPARTURE_TIME", hourOfDay + ":" + minute);
-                                        ViewTourActivity.this.getIntent().putExtra("TRAVEL_ID", curTravelId);
-                                        ViewTourActivity.this.finish();
-                                        startActivity(ViewTourActivity.this.getIntent());
+                                        view.setIs24HourView(true);
+                                        String newDepartureTime = hourOfDay + ":" + minute;
+                                        if (Utility.isValidTimeChanged(prevArrivalTime, newDepartureTime)) {
+                                            int newPlaceTime = Utility.computeTimeDiffer(newDepartureTime, prevDepartureTime);
+
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_DEPARTURE_TIME_CHANGED);
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.DAY_OF_CHANGED_TIME, curDayIndex);
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.PLACE_OF_CHANGED_TIME, curPlaceIndex);
+                                            if (curPlaceIndex.equals("0")) {
+                                                ViewTourActivity.this.getIntent().putExtra(ActivityHelper.NEW_DEPARTURE_TIME, newDepartureTime);
+                                            }
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.NEW_CHANGED_TIME, newPlaceTime);
+                                            ViewTourActivity.this.finish();
+                                            startActivity(ViewTourActivity.this.getIntent());
+
+                                        } else {
+                                            Toast.makeText(ViewTourActivity.this, "New time must be later than the previous arrival time ", Toast.LENGTH_LONG).show();
+                                        }
+
                                     }
-                                }, mHour, mMinute, false);
+                                }, mHour, mMinute, true);
+
                         timePickerDialog.show();
                     }
                 });
 
+                transportView.getTvTo().setTag(new String(d + ":" + p + ":" + placeTimes.get(p)));
                 transportView.getTvTo().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -441,6 +632,15 @@ public class ViewTourActivity extends AppCompatActivity {
                         final Calendar c = Calendar.getInstance();
                         int mHour = c.get(Calendar.HOUR_OF_DAY);
                         int mMinute = c.get(Calendar.MINUTE);
+                        TextView tvTo = (TextView) v;
+                        final String prevDepartureTime = tvTo.getText().toString();
+
+                        String strTag = (String) tvTo.getTag();
+                        final String curDayIndex = strTag.substring(0, strTag.indexOf(":"));
+                        final String curPlaceIndex = strTag.substring(strTag.indexOf(":") + 1, strTag.lastIndexOf(":"));
+                        int curPlaceTime = Integer.parseInt(strTag.substring(strTag.lastIndexOf(":") + 1));
+
+                        final String prevArrivalTime = Utility.computeTime(prevDepartureTime, curPlaceTime * (-1));
 
                         // Launch Time Picker Dialog
                         TimePickerDialog timePickerDialog = new TimePickerDialog(ViewTourActivity.this,
@@ -449,12 +649,29 @@ public class ViewTourActivity extends AppCompatActivity {
                                     @Override
                                     public void onTimeSet(TimePicker view, int hourOfDay,
                                                           int minute) {
-                                        ViewTourActivity.this.getIntent().putExtra("CHANGE_DEPARTURE_TIME", hourOfDay + ":" + minute);
-                                        ViewTourActivity.this.getIntent().putExtra("TRAVEL_ID", curTravelId);
-                                        ViewTourActivity.this.finish();
-                                        startActivity(ViewTourActivity.this.getIntent());
+                                        //tvFrom.setText(hourOfDay + ":" + minute);
+                                        view.setIs24HourView(true);
+                                        String newDepartureTime = hourOfDay + ":" + minute;
+                                        if (Utility.isValidTimeChanged(prevArrivalTime, newDepartureTime)) {
+                                            int newPlaceTime = Utility.computeTimeDiffer(newDepartureTime, prevDepartureTime);
+
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_DEPARTURE_TIME_CHANGED);
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.DAY_OF_CHANGED_TIME, curDayIndex);
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.PLACE_OF_CHANGED_TIME, curPlaceIndex);
+                                            if (curPlaceIndex.equals("0")) {
+                                                ViewTourActivity.this.getIntent().putExtra(ActivityHelper.NEW_DEPARTURE_TIME, newDepartureTime);
+                                            }
+                                            ViewTourActivity.this.getIntent().putExtra(ActivityHelper.NEW_CHANGED_TIME, newPlaceTime);
+                                            ViewTourActivity.this.finish();
+                                            startActivity(ViewTourActivity.this.getIntent());
+
+                                        } else {
+                                            Toast.makeText(ViewTourActivity.this, "New time must be later than the previous arrival time ", Toast.LENGTH_LONG).show();
+                                        }
+
                                     }
-                                }, mHour, mMinute, false);
+                                }, mHour, mMinute, true);
+
                         timePickerDialog.show();
                     }
                 });
@@ -466,6 +683,7 @@ public class ViewTourActivity extends AppCompatActivity {
                     transportView.getTvFrom().setClickable(true);
                 }
 
+                transportView.setTag(curPlaceId);
                 transportView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -475,11 +693,12 @@ public class ViewTourActivity extends AppCompatActivity {
                 });
 
 
-                mDepartureTime = Utility.computeTime(strArrivalTime, placeTimes.get(p));
+                mDepartureTime = Utility.computeTime(strArrivalTime, placeTimes.get(p + 1));
+                previousArrivalTime = strArrivalTime;
                 transportViews.add(transportView);
                 transportIndex++;
             }
-            transportViewHash.put(strDay + (i+1), transportViews);
+            transportViewHash.put(strDay + (d + 1), transportViews);
         }
 
         Fragment diagramFragment = TourDiagramFragment.newInstance(ViewTourActivity.this, placeViewHash, transportViewHash);
@@ -505,14 +724,39 @@ public class ViewTourActivity extends AppCompatActivity {
 
     }
 
+    private void updateTimeSchedule() {
+        for (int d = 0; d < times.size(); d++) {
+            if (d == dayOfChangedTime) {
+                for (int p = 0; p < times.get(strDay + (d + 1)).size(); p++) {
+                    if (p == placeOfChangedTime) {
+                        Log.d(TAG, "547: d/p " + d + "/" + p);
+                        Log.d(TAG, "547: before " + times.get(strDay + (d + 1)).get(p));
+
+                        if (placeOfChangedTime == 0) {
+                            strStartTime = newDepartureTime;
+                        }
+                        int newTime = times.get(strDay + (d + 1)).get(p) + newChangedTime;
+
+                        times.get(strDay + (d + 1)).set(p, newTime);
+                        Log.d(TAG, "547: after " + times.get(strDay + (d + 1)).get(p));
+
+                    }
+                }
+            }
+        }
+    }
+
+
+    private Place curPlace;
+
     private void showPopupMenuPlace(PlaceView v) {
         PopupMenu menu = new PopupMenu(this, v);
-        Place p = v.getPlace();
-        curPlaceId = v.getId();
+        curPlace = v.getPlace();
+        curPlaceId = curPlace.getId();
 
 
-        final String strSite = p.getSite();
-        menu.getMenu().add(p.getName());
+        final String strSite = curPlace.getSite();
+        menu.getMenu().add(curPlace.getName());
         menu.getMenu().getItem(0).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -521,10 +765,10 @@ public class ViewTourActivity extends AppCompatActivity {
             }
         });
 
-        menu.getMenu().add(p.getInfo());
-        menu.getMenu().add(p.getAddress());
-        menu.getMenu().add(p.getContact());
-        menu.getMenu().add("Rate: " + p.getRate());
+        menu.getMenu().add(curPlace.getInfo());
+        menu.getMenu().add(curPlace.getAddress());
+        menu.getMenu().add(curPlace.getContact());
+        menu.getMenu().add("Rate: " + curPlace.getRate());
         menu.getMenu().add("Change");
         menu.getMenu().add("Skip");
 
@@ -536,16 +780,29 @@ public class ViewTourActivity extends AppCompatActivity {
                         "You Clicked : " + item.getTitle(),
                         Toast.LENGTH_SHORT
                 ).show();
+
                 if (item.getTitle().equals("Skip")) {
-                    Intent intent =  new Intent(ViewTourActivity.this.getApplicationContext(), ViewTourActivity.class);
-                    intent.putExtra("SKIP", "curPlaceId");
-                    ViewTourActivity.this.startActivities(new Intent[]{intent});
+                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_SKIP);
+                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.PLACE_ID, curPlaceId);
+                    ViewTourActivity.this.finish();
+                    startActivity(ViewTourActivity.this.getIntent());
+
                 }
                 if (item.getTitle().equals("Change")) {
-                    Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), ChangePlaceActivity.class);
-                    intent.putExtra(ActivityHelper.TOUR_ID, tour.getId());
-                    intent.putExtra(ActivityHelper.OLD_PLACE_ID, curPlaceId);
-                    ViewTourActivity.this.startActivities(new Intent[]{intent});
+                    String placeType = curPlace.getType();
+                    Intent intent;
+                    if (placeType.equalsIgnoreCase("Accommodation")) {
+                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
+                    } else if (placeType.equalsIgnoreCase("Restaurant")) {
+                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
+                    } else {
+                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
+                    }
+                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_CHANGED);
+                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
+                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
+                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+                    startActivity(intent);
                     ViewTourActivity.this.finish();
                 }
                 return true;
@@ -555,9 +812,20 @@ public class ViewTourActivity extends AppCompatActivity {
         menu.show();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
+            newPlaceId = data.getData().toString();
+            Log.d(TAG, "715-New Place ID:" + newPlaceId);
+        }
+    }
+
     private void showPopupMenuTransport(View v) {
         TransportView transportView = (TransportView) v;
         PopupMenu menu = new PopupMenu(this.getApplicationContext(), v);
+
+        final String curPlaceId = (String) transportView.getTag();
+
 
         HashMap<String, Transport> transportsHash = transportView.getTravel().getTransports();
         List<Transport> transports = new ArrayList<Transport>(transportsHash.values());
@@ -590,12 +858,15 @@ public class ViewTourActivity extends AppCompatActivity {
                 ).show();
 
                 if (item.getTitle().equals("Add Place")) {
-                    Intent intent =  new Intent( ViewTourActivity.this.getApplicationContext(), AddPlaceActivity.class);
-                    intent.putExtra(ActivityHelper.PREV_PLACE_ID, curPlaceId);
-                    ViewTourActivity.this.startActivities(new Intent[]{intent});
+                    Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
+
+                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_ADDED);
+                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
+                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
+                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+                    startActivity(intent);
+                    ViewTourActivity.this.finish();
                 }
-                ViewTourActivity.this.startActivity( ViewTourActivity.this.getIntent());
-                ViewTourActivity.this.finish();
                 return true;
             }
         });
@@ -622,7 +893,7 @@ public class ViewTourActivity extends AppCompatActivity {
     }
 
     private Place getPlace(String placeId) {
-        if(allPlaces != null && allPlaces.size()>0) {
+        if (allPlaces != null && allPlaces.size() > 0) {
             for (Place place : allPlaces) {
                 if (place.getId().equals(placeId)) return place;
             }
@@ -631,7 +902,7 @@ public class ViewTourActivity extends AppCompatActivity {
     }
 
     private Travel getTravel(String travelId) {
-        if(travels != null && travels.size()>0) {
+        if (travels != null && travels.size() > 0) {
             for (Travel travel : travels) {
                 if (travel.getId().equals(travelId)) return travel;
             }

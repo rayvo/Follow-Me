@@ -3,11 +3,13 @@ package com.cewit.fm1;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.util.TimeUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -250,101 +252,7 @@ public class TourSummaryFragment extends Fragment {
     private void updateView(HashMap<String, List<Place>> detailDays, List<Travel> travels) {
         //Prepare places
         //View Preparation
-
         int numDays = detailDays.size();
-        /*
-        for (int i = 0; i < numDays; i++) {
-
-            times = timeSchedules.get("Day " + (i+1));
-            TableRow  dayRow= new TableRow(this.context);
-            TableLayout.LayoutParams tableRowParamss = new TableLayout.LayoutParams
-                            (0, TableLayout.LayoutParams.WRAP_CONTENT);
-            tableRowParamss.setMargins(0, 0, 0, 10);
-            dayRow.setBackgroundColor(Color.DKGRAY);
-            dayRow.setLayoutParams(tableRowParamss);
-
-            //add Day-------------------------------------------------------------------------------
-            TextView tvDayTitle = new TextView(this.context);
-            tvDayTitle.setText("Day " + (i + 1));
-            tvDayTitle.setTextSize(22);
-            tvDayTitle.setTextColor(Color.WHITE);
-            tvDayTitle.setBackgroundColor(Color.DKGRAY);
-            lilSummary.addView(tvDayTitle);
-
-            //add Detail Day Table -----------------------------------------------------------------
-            LinearLayout lilTable = new LinearLayout(this.context);
-            lilTable.setOrientation(LinearLayout.VERTICAL);
-
-
-
-            places = detailDays.get("Day " + (i + 1));
-
-            //Calculate number of row.
-            int numOfRows = places.size()-1;
-            for (Place place: places) {
-                if (place.getType().contains("Restaurant")) {
-                    numOfRows ++;
-                }
-            }
-
-            String strFrom = startTime;
-            String strTo;
-            String strCurTime = startTime;
-            String strNextTime;
-            for (int p = 0; p<places.size()-1; p++) {
-                //TableRow rowView = new TableRow(this.context);
-                LinearLayout lilRow = new LinearLayout(this.context);
-
-                LinearLayout.LayoutParams lilRowParamss = new LinearLayout.LayoutParams
-                        (LinearLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT);
-                lilRow.setOrientation(LinearLayout.HORIZONTAL);
-                lilRow.setWeightSum(1);
-                lilRow.setBackgroundColor(Color.parseColor("#62b0ff"));
-
-                Place curPlace = places.get(p);
-                Place nextPlace = places.get(p+1);
-
-                Transport transport = Utility.getTransport(travels,curPlace.getId(), nextPlace.getId(), preferTransportType);
-                int transportTime = transport.getTime();
-                strNextTime = Utility.computeTime(strCurTime, transportTime);
-                MovingView mvTime = getMovingView(strCurTime,strNextTime);
-
-                lilRow.addView(mvTime);
-                //TODO add time spending at each place
-                strCurTime = Utility.computeTime(strNextTime, times.get(p+1).intValue());
-
-
-
-                strFrom = curPlace.getName();
-                strTo = nextPlace.getName();
-                MovingView mvPlace = getMovingView(strFrom, strTo);
-                lilRow.addView(mvPlace);
-
-                TextView tvContent = new TextView(this.context);
-                if (transport != null) {
-                    if (transport.getName() != null) {
-                        tvContent.setText(transport.getType() + " " + transport.getName());
-                    } else {
-                        tvContent.setText(transport.getType());
-                    }
-                } else {
-                    tvContent.setText("TBD");
-                }
-                tvContent.setTextSize(18);
-
-                lilRow.addView(tvContent);
-
-                EditText etCost = new EditText(this.context);
-                etCost.setText(String.valueOf(transport.getCost()));
-                etCost.setTextSize(18);
-                lilRow.addView(etCost);
-
-                lilTable.addView(lilRow);
-            }
-            lilSummary.addView(lilTable);
-
-        } */
-
        for (int i = 0; i < numDays; i++) {
 
             times = timeSchedules.get("Day " + (i+1));
@@ -364,8 +272,8 @@ public class TourSummaryFragment extends Fragment {
             lilSummary.addView(tvDayTitle);
 
             //add Detail Day Table -----------------------------------------------------------------
-            TableLayout dayTable = new TableLayout(this.context);
-            dayTable.setStretchAllColumns(true);
+            TableLayout tblDaySummary = new TableLayout(this.context);
+           tblDaySummary.setStretchAllColumns(true);
             places = detailDays.get("Day " + (i + 1));
 
             //Calculate number of row.
@@ -380,13 +288,92 @@ public class TourSummaryFragment extends Fragment {
             String strTo;
             String strCurTime = startTime;
             String strNextTime;
+            String strPrevTime = startTime;
+            int mealIndex = 0;
+
+           TableRow rowView = new TableRow(this.context);
+           rowView.setBackgroundColor(Color.parseColor("#62b0ff"));
+           tableRowParamss.setMargins(0, 0, 0, 5);
+           rowView.setLayoutParams(tableRowParamss);
+           TextView tvTime = new TextView(this.context);
+           tvTime.setText("시간");
+
+           TextView tvItem = new TextView(this.context);
+           tvItem.setText("항목");
+
+           TextView tvContent = new TextView(this.context);
+           tvContent.setText("내용");
+
+           TextView tvFee = new TextView(this.context);
+           tvFee.setText("금액");
+
+           tvTime.setTextSize(20);
+           tvItem.setTextSize(20);
+           tvContent.setTextSize(20);
+           tvFee.setTextSize(20);
+
+           tvTime.setTypeface(tvTime.getTypeface(), Typeface.BOLD_ITALIC);
+           tvItem.setTypeface(tvItem.getTypeface(), Typeface.BOLD_ITALIC);
+           tvContent.setTypeface(tvContent.getTypeface(), Typeface.BOLD_ITALIC);
+           tvFee.setTypeface(tvFee.getTypeface(), Typeface.BOLD_ITALIC);
+
+           tvTime.setTextColor(Color.BLUE);
+           tvItem.setTextColor(Color.BLUE);
+           tvContent.setTextColor(Color.BLUE);
+           tvFee.setTextColor(Color.BLUE);
+
+           rowView.addView(tvTime);
+           rowView.addView(tvItem);
+           rowView.addView(tvContent);
+           rowView.addView(tvFee);
+
+           tblDaySummary.addView(rowView);
+
+            int p1 = 0;
             for (int p = 0; p<places.size()-1; p++) {
-                TableRow rowView = new TableRow(this.context);
+                rowView = new TableRow(this.context);
                 rowView.setBackgroundColor(Color.parseColor("#62b0ff"));
                 tableRowParamss.setMargins(0, 0, 0, 5);
                 rowView.setLayoutParams(tableRowParamss);
 
                 Place curPlace = places.get(p);
+                MovingView mvPlace;
+                if (curPlace.getType().equals("Restaurant")) {
+                    TableRow extraRowView = new TableRow(this.context);
+                    extraRowView.setBackgroundColor(Color.parseColor("#62b0ff"));
+                    tableRowParamss.setMargins(0, 0, 0, 5);
+                    extraRowView.setLayoutParams(tableRowParamss);
+                    MovingView mvTime = getMovingView(strPrevTime, strCurTime, "(" + Utility.formatTime(times.get(p).intValue()) + ")");
+                    extraRowView.addView(mvTime);
+
+                    String strMeal = "저녁";
+                    if (mealIndex == 0) {
+                        strMeal = "점심";
+                        mealIndex++;
+                    }
+                    tvItem = new TextView(this.context);
+                    tvItem.setText(strMeal);
+
+                    tvContent = new TextView(this.context);
+                    tvContent.setText(curPlace.getName());
+
+                    tvItem.setTextSize(15);
+                    tvContent.setTextSize(15);
+
+                    extraRowView.addView(tvItem);
+                    extraRowView.addView(tvContent);
+
+                    EditText etCost = new EditText(this.context);
+                    etCost.setText(String.valueOf(curPlace.getEntranceFee()));
+                    etCost.setTextSize(15);
+                    extraRowView.addView(etCost);
+                    tblDaySummary.addView(extraRowView);
+
+                } else if (curPlace.getType().equals("Accommodation")){
+
+                } else {
+
+                }
                 Place nextPlace = places.get(p+1);
 
                 Transport transport = Utility.getTransport(travels,curPlace.getId(), nextPlace.getId(), preferTransportType);
@@ -395,16 +382,17 @@ public class TourSummaryFragment extends Fragment {
                 MovingView mvTime = getMovingView(strCurTime, strNextTime, "(" + Utility.formatTime(transportTime) + ")");
                 rowView.addView(mvTime);
                 //TODO add time spending at each place
+                strPrevTime = strNextTime;
                 strCurTime = Utility.computeTime(strNextTime, times.get(p+1).intValue());
 
 
 
                 strFrom = curPlace.getName();
                 strTo = nextPlace.getName();
-                MovingView mvPlace = getMovingView(strFrom, strTo, "(" + Utility.formatDistance(transport.getDistance()) + ")");
+                mvPlace = getMovingView(strFrom, strTo, "(" + Utility.formatDistance(transport.getDistance()) + ")");
                 rowView.addView(mvPlace);
 
-                TextView tvContent = new TextView(this.context);
+                tvContent = new TextView(this.context);
                 if (transport != null) {
                     if (transport.getName() != null) {
                         tvContent.setText(transport.getType() + " " + transport.getName());
@@ -414,35 +402,48 @@ public class TourSummaryFragment extends Fragment {
                 } else {
                     tvContent.setText("TBD");
                 }
-                tvContent.setTextSize(18);
+                tvContent.setTextSize(15);
                 rowView.addView(tvContent);
 
                 EditText etCost = new EditText(this.context);
                 etCost.setText(String.valueOf(transport.getCost()));
-                etCost.setTextSize(18);
+                etCost.setTextSize(15);
                 rowView.addView(etCost);
 
-                dayTable.addView(rowView);
+
+                tblDaySummary.addView(rowView);
             }
-            lilSummary.addView(dayTable);
+            lilSummary.addView(tblDaySummary);
 
         }
 
     }
 
-    private MovingView getMovingView(String strFrom, String strTo, String strConent) {
+    private MovingView getMovingView(String strFrom, String strTo, String strContent) {
         MovingView view = new MovingView(this.context);
+        
         view.getTvFrom().setText(strFrom);
-        view.getTvContent().setText(strConent);
-        view.getTvContent().setTextSize(12);
+        view.getTvFrom().setTextSize(15);
+
+        view.getTvContent().setText(strContent);
+        view.getTvContent().setTextSize(15);
+
         view.getTvTo().setText(strTo);
+        view.getTvTo().setTextSize(15);
 
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableLayout.LayoutParams.WRAP_CONTENT, TableLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(0,0,0,0);
+        view.getTvFrom().setLayoutParams(layoutParams);
+        view.getTvFrom().setGravity(Gravity.LEFT);
 
-        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT, 0.2f);
-        /*view.getIvIcon().setLayoutParams(layoutParams);
-        view.getIvIcon().getLayoutParams().height = 50;
-        view.getIvIcon().requestLayout();*/
+        view.getTvContent().setLayoutParams(layoutParams);
+        view.getTvContent().setGravity(Gravity.LEFT);
+
+        view.getTvTo().setLayoutParams(layoutParams);
+        view.getTvTo().setGravity(Gravity.LEFT);
+
         view.setGravity(Gravity.LEFT);
+        view.setLayoutParams(layoutParams);
         return view;
     }
 }

@@ -2,32 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:layout_gravity="center_horizontal"
     android:gravity="center_horizontal"
-    android:id="@+id/lilOutside"
-    android:orientation="vertical">
+    android:id="@+id/lilOutside">
 
     <LinearLayout
         android:id="@+id/lilTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:layout_gravity="center_vertical"
         android:weightSum="1">
         <TextView
             android:id="@+id/tvFrom"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textStyle="italic"
             android:textSize="12dp"
             android:layout_weight="0.2"/>
         <ImageView
             android:id="@+id/ivIcon"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0.6"/>
         <TextView
             android:id="@+id/tvTo"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textStyle="italic"
             android:textSize="12dp"
@@ -45,5 +46,6 @@
         android:layout_height="wrap_content"
         android:textStyle="italic"
         android:textSize="12dp"
+        android:gravity="center_horizontal"
         android:layout_gravity="center_horizontal"/>
 </LinearLayout>

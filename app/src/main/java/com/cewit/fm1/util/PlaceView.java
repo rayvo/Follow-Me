@@ -9,17 +9,20 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.cewit.fm1.R;
+import com.cewit.fm1.ViewTourActivity;
 import com.cewit.fm1.models.Place;
+
+import java.io.Serializable;
 
 /**
  * Created by Taeyu Im on 18. 7. 26.
  * qvo@cs.stonybrook.edu
  */
 
-public class PlaceView extends LinearLayout {
+public class PlaceView extends LinearLayout{
 
     private Place place;
-    private TextView tvName;
+    private  TextView tvName;
     //private ImageView ivIcon;
 
 
@@ -32,6 +35,10 @@ public class PlaceView extends LinearLayout {
 
         //ivIcon = (ImageView) getChildAt(0).findViewById(R.id.ivIcon);
         tvName = (TextView) getChildAt(0).findViewById(R.id.tvName);
+    }
+
+    public PlaceView(Context context, Place place) {
+        super(context, null);
     }
 
     public void setTvName(String strName) {

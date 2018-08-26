@@ -1,18 +1,21 @@
 package com.cewit.fm1.util;
 
+import android.app.Activity;
+import android.app.TimePickerDialog;
 import android.content.Context;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.cewit.fm1.R;
 import com.cewit.fm1.models.Transport;
 import com.cewit.fm1.models.Travel;
+
+import java.util.Calendar;
+import java.util.HashMap;
 
 /**
  * Created by Taeyu Im on 18. 7. 26.
@@ -23,13 +26,16 @@ public class TransportView extends LinearLayout {
     private static final String TAG = TransportView.class.getName();
 
 
-    LinearLayout layoutTransport;
+    LinearLayout lilOutside;
+    LinearLayout lilTop;
     private Travel travel;
     private TextView tvInfo;
     private TextView tvFrom;
     private TextView tvTo;
     private ImageView ivIcon;
     private View vLine;
+    private Context context;
+    private Activity activity;
 
     /* viewDirection
     0: to right
@@ -38,146 +44,84 @@ public class TransportView extends LinearLayout {
     3: down left
      */
 
-    public TransportView(Context context, Travel travel, int viewDirection, boolean isCar) {
-        super(context, null);
+    public TransportView(Activity mActivity, Travel mTravel, int viewDirection, String mDepartureTime, String mArrivalTime, String mInfo, boolean isCar) {
+        super(mActivity.getApplicationContext(), null);
+        if (mTravel == null) return;
+        activity = mActivity;
+        this.travel = mTravel;
 
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        inflater.inflate(R.layout.view_tour_transport_item, this, true);
+        LayoutInflater inflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (viewDirection == 0) {
+            inflater.inflate(R.layout.transport_view_0, this, true);
+        } else if (viewDirection == 1) {
+            inflater.inflate(R.layout.transport_view_1, this, true);
+        } else if (viewDirection == 2) {
+            inflater.inflate(R.layout.transport_view_2, this, true);
+        } else {
+            inflater.inflate(R.layout.transport_view_3, this, true);
+        }
 
-        layoutTransport = (LinearLayout) getChildAt(0);
+
+        lilOutside = (LinearLayout) getChildAt(0);
+        lilTop = (LinearLayout) getChildAt(0).findViewById(R.id.lilTop);
         ivIcon = (ImageView) getChildAt(0).findViewById(R.id.ivIcon);
         tvFrom = (TextView) getChildAt(0).findViewById(R.id.tvFrom);
         tvTo = (TextView) getChildAt(0).findViewById(R.id.tvTo);
         tvInfo = (TextView) getChildAt(0).findViewById(R.id.tvInfo);
         vLine = (View) getChildAt(0).findViewById(R.id.vLine);
 
-        //setOrientation(LinearLayout.VERTICAL);
-        //setGravity(Gravity.CENTER_HORIZONTAL);
-        LayoutParams params ;
+
+
+        tvFrom.setText(mDepartureTime);
+        tvTo.setText(mArrivalTime);
+        tvInfo.setText(mInfo);
+
+        TransportViewType viewType = null;
+        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         switch (viewDirection) {
             case 0: //right
-                //Nothing changed
-                params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-                params.setMargins(0, 0, 0, 0);
+                if (isCar) {
+                    ivIcon.setImageResource(R.drawable.car_right);
+                } else {
+                    ivIcon.setImageResource(R.drawable.bus_right);
+                }
 
-                layoutTransport.setOrientation(LinearLayout.VERTICAL);
-                layoutTransport.setGravity(Gravity.CENTER_HORIZONTAL);
-                layoutTransport.setLayoutParams(params);
+                lilOutside.setLayoutParams(params);
                 break;
             case 1: //down-right
-                params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
-                params.setMargins(0, 0, 0, 0);
-
-                layoutTransport.setGravity(Gravity.CENTER_VERTICAL);
-                layoutTransport.setOrientation(LinearLayout.HORIZONTAL);
-                layoutTransport.setLayoutParams(params);
-
-                if (tvInfo.getParent() != null) {
-                    ((ViewGroup) tvInfo.getParent()).removeView(tvInfo);
+                if (isCar) {
+                    ivIcon.setImageResource(R.drawable.car_down_right);
+                } else {
+                    ivIcon.setImageResource(R.drawable.bus_down_right);
                 }
-                if (vLine.getParent() != null) {
-                    ((ViewGroup) vLine.getParent()).removeView(vLine);
-                }
-                if (ivIcon.getParent() != null) {
-                    ((ViewGroup) ivIcon.getParent()).removeView(ivIcon);
-                }
-                float scale = getContext().getResources().getDisplayMetrics().density;
-                int tvInfoWidthPixels = (int) (40 * scale + 0.5f);
-                LayoutParams tvInfoParams = new LayoutParams(tvInfoWidthPixels, LayoutParams.MATCH_PARENT);
-
-                tvInfo.setHorizontallyScrolling(false);
-                tvInfo.setSingleLine(false);
-                tvInfo.setLayoutParams(tvInfoParams);
-
-                layoutTransport.addView(tvInfo);
-
-                int lineViewPixels = (int) (3 * scale + 0.5f); //convert from 3dp
-                LayoutParams vLineParams = new LayoutParams(lineViewPixels, LayoutParams.MATCH_PARENT);
-                params.setMargins(0, 0, 0, 0);
-                vLine.setLayoutParams(vLineParams);
-                layoutTransport.addView(vLine);
-
-                layoutTransport.addView(ivIcon);
+                tvInfo.setRotation(90);
+                ivIcon.setLayoutParams(params);
                 break;
             case 2: //left
-                params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-                params.setMargins(0, 0, 0, 0);
+                if (isCar) {
+                    ivIcon.setImageResource(R.drawable.car_left);
+                } else {
+                    ivIcon.setImageResource(R.drawable.bus_left);
+                }
+                tvFrom.setText(mArrivalTime);
+                tvTo.setText(mDepartureTime);
+                tvTo.setClickable(true);
+                tvFrom.setClickable(false);
 
-                layoutTransport.setOrientation(LinearLayout.VERTICAL);
-                layoutTransport.setGravity(Gravity.CENTER_HORIZONTAL);
-                layoutTransport.setLayoutParams(params);
                 break;
             case 3: //down-left
-                params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-                layoutTransport.setGravity(Gravity.CENTER_VERTICAL);
-                layoutTransport.setOrientation(LinearLayout.HORIZONTAL);
-
-                if (tvInfo.getParent() != null) {
-                    ((ViewGroup) tvInfo.getParent()).removeView(tvInfo);
+                if (isCar) {
+                    ivIcon.setImageResource(R.drawable.car_down_left);
+                } else {
+                    ivIcon.setImageResource(R.drawable.bus_down_left);
                 }
-                if (vLine.getParent() != null) {
-                    ((ViewGroup) vLine.getParent()).removeView(vLine);
-                }
-                if (ivIcon.getParent() != null) {
-                    ((ViewGroup) ivIcon.getParent()).removeView(ivIcon);
-                }
-
-                layoutTransport.addView(ivIcon);
-
-                scale = getContext().getResources().getDisplayMetrics().density;
-                lineViewPixels = (int) (3 * scale + 0.5f); //convert from 3dp
-                vLineParams = new LayoutParams(lineViewPixels, LayoutParams.MATCH_PARENT);
-                params.setMargins(0, 0, 0, 0);
-                vLine.setLayoutParams(vLineParams);
-                layoutTransport.addView(vLine);
-
-                tvInfoWidthPixels = (int) (40 * scale + 0.5f);
-                tvInfoParams = new LayoutParams(tvInfoWidthPixels, LayoutParams.MATCH_PARENT);
-                tvInfoParams.setMargins(0,0,-50,0);
-                tvInfo.setHorizontallyScrolling(false);
-                tvInfo.setSingleLine(false);
-                tvInfo.setLayoutParams(tvInfoParams);
-                layoutTransport.addView(tvInfo);
+                tvInfo.setRotation(-90);
+                break;
         }
-
-        if (travel != null) {
-            this.travel = travel;
-            TransportViewType viewType = null;
-            if (isCar) {
-                switch (viewDirection) {
-                    case 0: //right
-                        viewType = TransportViewType.CAR_RIGHT;
-                        break;
-                    case 1: //down-right
-                        viewType = TransportViewType.CAR_DOWN_RIGHT;
-                        break;
-                    case 2: //left
-                        viewType = TransportViewType.CAR_LEFT;
-                        break;
-                    case 3: //down-left
-                        viewType = TransportViewType.CAR_DOWN_LEFT;
-                        break;
-                }
-            } else { //bus
-                switch (viewDirection) {
-                    case 0: //right
-                        viewType = TransportViewType.BUS_RIGHT;
-                        break;
-                    case 1: //down-right
-                        viewType = TransportViewType.BUS_DOWN_RIGHT;
-                        break;
-                    case 2: //left
-                        viewType = TransportViewType.BUS_LEFT;
-                        break;
-                    case 3: //down-left
-                        viewType = TransportViewType.BUS_DOWN_LEFT;
-                        break;
-                }
-            }
-            initLayoutOut(travel, viewType);
-        } else {
-            Log.i(TAG, "Received a null value of place.");
-        }
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT);
+        ivIcon.setLayoutParams(layoutParams);
+        ivIcon.getLayoutParams().height = 120;
+        ivIcon.getLayoutParams().width = 80;
     }
 
     public void setTvInfo(String strInfo) {
@@ -254,12 +198,8 @@ public class TransportView extends LinearLayout {
         //tvInfo.setText(strInfo);
     }
 
-    public TextView getTvFrom() {
-        return tvFrom;
-    }
-
-    public void setTvFrom(TextView tvFrom) {
-        this.tvFrom = tvFrom;
+    public void setTravel(Travel travel) {
+        this.travel = travel;
     }
 
     public TextView getTvTo() {
@@ -268,5 +208,25 @@ public class TransportView extends LinearLayout {
 
     public void setTvTo(TextView tvTo) {
         this.tvTo = tvTo;
+    }
+
+    public void setIvIcon(ImageView ivIcon) {
+        this.ivIcon = ivIcon;
+    }
+
+    public View getvLine() {
+        return vLine;
+    }
+
+    public void setvLine(View vLine) {
+        this.vLine = vLine;
+    }
+
+    public TextView getTvFrom() {
+        return tvFrom;
+    }
+
+    public void setTvFrom(TextView tvFrom) {
+        this.tvFrom = tvFrom;
     }
 }

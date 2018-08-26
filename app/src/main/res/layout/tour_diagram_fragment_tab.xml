@@ -11,18 +11,17 @@
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/lilDiagram"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <TableLayout
+   <!--         <TableLayout
                 android:id="@+id/tblTourDiagram"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#62b0ff"
-                android:stretchColumns="1,3"
-                android:visibility="visible">
-            </TableLayout>
+                android:background="#62b0ff">
+            </TableLayout>-->
         </LinearLayout>
     </ScrollView>
 
