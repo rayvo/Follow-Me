@@ -7,89 +7,102 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="172dp"
+        android:layout_height="150dp"
         android:padding="8dp">
 
         <TextView
-            android:id="@+id/tvName"
-
+            android:id="@+id/tvResTime"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/tvResNumber"
+            android:layout_alignStart="@+id/tvResName"
+            android:layout_weight="1"
+            android:text="ZZZZ"
+            android:textColor="#747474" />
+
+        <TextView
+            android:id="@+id/tvResName"
+            android:layout_width="270dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:clickable="true"
+            android:text="ABCDE"
             android:textColor="#000000"
-            android:textSize="21dp" />
+            android:textSize="20dp" />
 
         <TextView
-            android:id="@+id/tvNumber"
+            android:id="@+id/tvResAddress"
+            android:layout_width="270dp"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/tvResName"
+            android:layout_below="@+id/tvResName"
+            android:layout_weight="1"
+            android:text="12345"
+            android:textColor="#747474" />
+
+        <TextView
+            android:id="@+id/tvResNumber"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignStart="@+id/tvCuisine"
-            android:layout_below="@+id/tvCuisine"
+            android:layout_alignBottom="@+id/btnResSelect"
+            android:layout_alignStart="@+id/tvResName"
             android:layout_weight="1"
             android:autoLink="phone"
             android:clickable="true"
-            android:drawableLeft="@drawable/phone"
-            android:drawablePadding="5dp"
-            android:gravity="center_vertical"
+            android:text="12345"
             android:textColor="#00549d" />
 
         <TextView
-            android:id="@+id/tvCuisine"
+            android:id="@+id/tvResType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/tvName"
-            android:layout_marginStart="18dp"
+            android:layout_above="@+id/tvResTime"
+            android:layout_alignStart="@+id/tvResName"
             android:layout_weight="1"
-            android:drawableLeft="@drawable/food"
-            android:drawablePadding="5dp"
-            android:gravity="center_vertical" />
+            android:text="ZZZZ"
+            android:textColor="#747474" />
 
         <TextView
-            android:id="@+id/tvLocation"
+            android:id="@+id/tvResDistance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignStart="@+id/tvNumber"
-            android:layout_below="@+id/tvNumber"
+            android:layout_alignStart="@+id/tvResName"
+            android:layout_below="@+id/tvResAddress"
             android:layout_weight="1"
-            android:drawableLeft="@drawable/location"
-            android:drawablePadding="5dp"
-            android:gravity="center_vertical" />
-
-        <ImageButton
-            android:id="@+id/tvFav"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignTop="@+id/tvNumber"
-            android:background="@drawable/star_blank"/>
+            android:text="QWERTY"
+            android:textColor="#3a9ee6"
+            android:visibility="visible" />
 
         <Button
-            android:id="@+id/btnSelect"
-            android:layout_width="74dp"
-            android:layout_height="38dp"
+            android:id="@+id/btnResSelect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:layout_weight="1"
-            android:drawable="@drawable/location"
-            android:gravity="center_vertical"
-            android:text="select" />
+            android:text="Select" />
 
         <ImageView
-            android:id="@+id/ivImage"
-            android:layout_width="73dp"
-            android:layout_height="73dp"
-            android:layout_alignBottom="@+id/tvNumber"
+            android:id="@+id/ivResImage"
+            android:layout_width="93dp"
+            android:layout_height="93dp"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="39dp"
             android:layout_weight="1"
             app:srcCompat="@mipmap/ic_launcher" />
 
-        //Whatever else you need to add
+        <ImageView
+            android:id="@+id/ivResStar"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignBottom="@+id/tvResNumber"
+            android:layout_alignEnd="@+id/ivResImage"
+            android:layout_weight="1"
+            app:srcCompat="@mipmap/ic_launcher" />
 
 
     </RelativeLayout>
+
+
 
 
 </LinearLayout>

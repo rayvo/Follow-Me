@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="300dp"
+    android:layout_height="350dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <TextView
+        android:id="@+id/resName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:text="Name"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/resAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="203dp"
+        android:gravity="center_vertical"
+        android:textAlignment="center"
+        android:text="Addres" />
+
+    <TextView
+        android:id="@+id/resNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/resTime"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_vertical"
+        android:textAlignment="center"
+        android:text="Number" />
+
+    <TextView
+        android:id="@+id/resType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/resAddress"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_vertical"
+        android:textAlignment="center"
+        android:text="Type" />
+
+    <TextView
+        android:id="@+id/resTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/resType"
+        android:layout_centerHorizontal="true"
+        android:gravity="center_vertical"
+        android:textAlignment="center"
+        android:text="time" />
+
+    <ImageView
+        android:id="@+id/resImage"
+        android:layout_width="93dp"
+        android:layout_height="93dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="94dp" />
+
+    <Button
+        android:id="@+id/resConfirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/resName"
+        android:background="@color/colorPrimary"
+        android:padding="5dp"
+        android:text="Confirm"
+        android:textColor="@android:color/white" />
+
+    <Button
+        android:id="@+id/resCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/resConfirm"
+        android:layout_toEndOf="@+id/resName"
+        android:background="@color/colorPrimary"
+        android:padding="5dp"
+        android:text="Cancel"
+        android:textColor="@android:color/white" />
+</RelativeLayout>

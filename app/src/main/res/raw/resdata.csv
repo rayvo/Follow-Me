@@ -1,0 +1,4 @@
+id, name, address, cityId, contact, site, info, email, lat, lng, rate, openTime, closeTime, entranceFee, imageIds, type, isFavorite, resType
+restaurant001,Saint Augustin,69 Convensia-daero Songdo 1(il)-dong Yeonsu-gu Incheon,-LJ6r2bgTcGlH9kJGTzu,82-032-832-7898,http://www.augustin.co.kr/,filler description,filler email,37.389264,126.644207,4,10:30,12:00,0,001,Restaurant,false,Asian Restaurant
+restaurant002,Songdo Hanok Village,200 Technopark-ro Songdo-dong Yeonsu-gu Incheon,-LJ6r2bgTcGlH9kJGTzu,82-32-834-2347,http://www.entas.co.kr/,filler description,filler email,37.387223,126.6438262,4,10:30,22:00,0,002,Restaurant,false,Korean Restaurant
+restaurant003,Manokamana,2107 Haedoji-ro Yeonsu-gu Incheon,-LJ6r2bgTcGlH9kJGTzu,82-32-833-8850,http://www.mankamana.com/,filler description,filler email,37.3903841,126.6500342,3,10:30,22:00,0,003,Restaurant,false,Indian Restaurant
