@@ -28,19 +28,18 @@ import java.util.List;
 
 public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
     private List<Accommodation> dataSet;
-    private List<Accommodation> favorites;
+    //private List<Accommodation> favorites;
     private Activity context;
     private boolean isGPSOn;
 
-    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet, List<Accommodation> favorites, boolean isGPSOn) {
+    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet,  boolean isGPSOn) {
         super(context, R.layout.accom_custom_list_view, dataSet);
         this.context = context;
         this.dataSet = dataSet;
-        this.favorites = favorites;
         this.isGPSOn = isGPSOn;
     }
 
-    private Accommodation accom;
+    //private Accommodation accom;
     AccommodationCustomListView.ViewHolder viewHolder;
 
     @NonNull
@@ -58,7 +57,7 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
             viewHolder = (AccommodationCustomListView.ViewHolder) r.getTag();
         }
 
-        accom = dataSet.get(position);
+        final Accommodation accom = dataSet.get(position);
 
         // Edit viewHolder to have proper Accom Info
         final String strSite = accom.getSite();
@@ -99,26 +98,22 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
         final ImageView ivhf = viewHolder.ivAccomStar;
         if (accom.isFavorite()) {
             viewHolder.ivAccomStar.setImageResource(R.drawable.star_filled);
-            if (!favorites.contains(accom)) {
-                favorites.add(accom);
-            }
+            System.out.println("XXXXXXXXX" + accom.getName());
         } else {
             viewHolder.ivAccomStar.setImageResource(R.drawable.star_blank);
-            if (favorites.contains(accom)) {
-                favorites.remove(accom);
-            }
+            System.out.println("XXXXXXXXX" + accom.getName());
         }
 
         viewHolder.ivAccomStar.setClickable(true);
         viewHolder.ivAccomStar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (favorites.contains(accom)) {
-                    favorites.remove(accom);
+                if (accom.isFavorite()){ //favorites.contains(accom)) {
+                    //favorites.remove(accom);
                     accom.setFavorite(false);
                     ivhf.setImageResource(R.drawable.star_blank);
                 } else {
-                    favorites.add(accom);
+                    //favorites.add(accom);
                     accom.setFavorite(true);
                     ivhf.setImageResource(R.drawable.star_filled);
                 }

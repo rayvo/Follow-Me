@@ -33,7 +33,7 @@ public class AccommodationListActivity extends AppCompatActivity {
     private String TAG = AccommodationListActivity.class.getSimpleName();
 
     public List<Accommodation> hotelSamples;
-    public List<Accommodation> hotelStarredList;
+    //public List<Accommodation> hotelStarredList;
     ListView list;
     Button btnViewStarredOrAll;
     Spinner spnGu;
@@ -49,7 +49,7 @@ public class AccommodationListActivity extends AppCompatActivity {
         setContentView(R.layout.accom_list);
 
         hotelSamples = new ArrayList<>();
-        hotelStarredList = new ArrayList<>();
+        //hotelStarredList = new ArrayList<>();
 
         spnGu = findViewById(R.id.spnGu);
         spnType = findViewById(R.id.spnType);
@@ -59,13 +59,13 @@ public class AccommodationListActivity extends AppCompatActivity {
 
 
         // Set list adapter
-        AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList, sGPS.isChecked());
+        AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples,  sGPS.isChecked());// hotelStarredList,
         list.setAdapter(customListView);
 
         // Set spnGu adapter
         // TODO Properly set spnGu data elsewhere instead of manually inputting it
         String[] temp = new String[]{
-                "View All", "연수구", "중구", "남동구"
+                "View All", "서귀포시"
         };
         ArrayAdapter<String> a = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, temp);
         a.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -74,7 +74,7 @@ public class AccommodationListActivity extends AppCompatActivity {
         // Set spnType adapter
         // TODO Properly set spnType data elsewhere instead of manually inputting it
         temp = new String[]{
-                "View All", "Hotel", "Guest House", "Motel"
+                "View All", "Hotel"
         };
         ArrayAdapter<String> a1 = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, temp);
         a1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -90,12 +90,12 @@ public class AccommodationListActivity extends AppCompatActivity {
                 } else {
                     btnViewStarredOrAll.setText("View Starred Items");
                     filterCurrentList( false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked() );
-
                 }
             }
         });
 
         spnGu.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String selectedItem = spnGu.getSelectedItem().toString();
@@ -149,54 +149,59 @@ public class AccommodationListActivity extends AppCompatActivity {
 
         if( !fav ){
             if( s.equals("View All") && t.equals("View All") ) {
-                customListView = new AccommodationCustomListView(this, hotelSamples, hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, hotelSamples,  isChecked );// hotelStarredList,
             } else if( s.equals("View All") ) {
                 for (int i = 0; i < hotelSamples.size(); i++) {
                     if (hotelSamples.get(i).getType().equals(t)) {
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked);
+                customListView = new AccommodationCustomListView(this, temp, isChecked); //hotelStarredList,
             } else if( t.equals("View All") ){
                 for( int i = 0; i < hotelSamples.size(); i++ ){
                     if( hotelSamples.get(i).getAddress().contains(s) ){
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, temp, isChecked ); //hotelStarredList,
             } else {
                 for( int i = 0; i < hotelSamples.size(); i++ ){
                     if( hotelSamples.get(i).getAddress().contains(s) && hotelSamples.get(i).getType().equals(t) ){
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, temp, isChecked );// hotelStarredList,
             }
         } else {
             if( s.equals("View All") && t.equals("View All") ) {
-                temp.addAll(hotelStarredList);
-                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+                for(int i = 0; i < hotelSamples.size(); i++){
+                    if( hotelSamples.get(i).isFavorite() ){
+                        temp.add(hotelSamples.get(i));
+                    }
+                }
+                //temp.addAll(hotelStarredList);
+                customListView = new AccommodationCustomListView(this, temp, isChecked ); //hotelStarredList,
             } else if( s.equals("View All") ) {
-                for (int i = 0; i < hotelStarredList.size(); i++) {
-                    if (hotelStarredList.get(i).getType().equals(t)) {
-                        temp.add(hotelStarredList.get(i));
+                for (int i = 0; i < hotelSamples.size(); i++) {
+                    if (hotelSamples.get(i).isFavorite() && hotelSamples.get(i).getType().equals(t)) {
+                        temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, temp, isChecked ); //hotelStarredList,
             } else if( t.equals("View All") ){
-                for( int i = 0; i < hotelStarredList.size(); i++ ){
-                    if( hotelStarredList.get(i).getAddress().contains(s) ){
-                        temp.add(hotelStarredList.get(i));
+                for( int i = 0; i < hotelSamples.size(); i++ ){
+                    if(hotelSamples.get(i).isFavorite() && hotelSamples.get(i).getAddress().contains(s) ){
+                        temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, temp, isChecked ); // hotelStarredList, isChecked );
             } else {
-                for( int i = 0; i < hotelStarredList.size(); i++ ){
-                    if( hotelStarredList.get(i).getAddress().contains(s) && hotelStarredList.get(i).getType().equals(t) ){
-                        temp.add(hotelStarredList.get(i));
+                for( int i = 0; i < hotelSamples.size(); i++ ){
+                    if( hotelSamples.get(i).isFavorite() && hotelSamples.get(i).getAddress().contains(s) && hotelSamples.get(i).getType().equals(t) ){
+                        temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, temp, isChecked ); // hotelStarredList, isChecked );
             }
         }
 
@@ -217,7 +222,7 @@ public class AccommodationListActivity extends AppCompatActivity {
                         hotelSamples.add(forDB);
                     }
                 }
-                AccommodationCustomListView customListView = new AccommodationCustomListView(AccommodationListActivity.this, hotelSamples, hotelStarredList, sGPS.isChecked());
+                AccommodationCustomListView customListView = new AccommodationCustomListView(AccommodationListActivity.this, hotelSamples, sGPS.isChecked()); //hotelStarredList, sGPS.isChecked());
                 list.setAdapter(customListView);
             }
             @Override
