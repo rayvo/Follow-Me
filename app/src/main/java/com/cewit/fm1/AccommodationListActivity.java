@@ -1,5 +1,6 @@
 package com.cewit.fm1;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import android.widget.Switch;
 
 import com.cewit.fm1.models.Accommodation;
 import com.cewit.fm1.models.Tour;
+import com.cewit.fm1.util.ActivityHelper;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,11 +44,25 @@ public class AccommodationListActivity extends AppCompatActivity {
 
     Accommodation forDB;
 
+    int REQUEST_MODE;
+    String cityId;
+    String tourId;
+    String curPlaceId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.accom_list);
+
+        Intent intent = this.getIntent();
+        //Check if this is a refresh
+        REQUEST_MODE = intent.getIntExtra(ActivityHelper.REFRESH_MODE, 0);
+        cityId = intent.getStringExtra(ActivityHelper.CITY_ID);
+        tourId = intent.getStringExtra(ActivityHelper.TOUR_ID);
+        curPlaceId = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
+
+
 
         hotelSamples = new ArrayList<>();
         //hotelStarredList = new ArrayList<>();
@@ -59,7 +75,7 @@ public class AccommodationListActivity extends AppCompatActivity {
 
 
         // Set list adapter
-        AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples,  sGPS.isChecked());// hotelStarredList,
+        AccommodationCustomListView customListView = new AccommodationCustomListView(this, hotelSamples,  sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId);
         list.setAdapter(customListView);
 
         // Set spnGu adapter
@@ -149,28 +165,28 @@ public class AccommodationListActivity extends AppCompatActivity {
 
         if( !fav ){
             if( s.equals("View All") && t.equals("View All") ) {
-                customListView = new AccommodationCustomListView(this, hotelSamples,  isChecked );// hotelStarredList,
+                customListView = new AccommodationCustomListView(this, hotelSamples,  isChecked, REQUEST_MODE, tourId, curPlaceId );// hotelStarredList,
             } else if( s.equals("View All") ) {
                 for (int i = 0; i < hotelSamples.size(); i++) {
                     if (hotelSamples.get(i).getType().equals(t)) {
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, isChecked); //hotelStarredList,
+                customListView = new AccommodationCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId); //hotelStarredList,
             } else if( t.equals("View All") ){
                 for( int i = 0; i < hotelSamples.size(); i++ ){
                     if( hotelSamples.get(i).getAddress().contains(s) ){
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, isChecked ); //hotelStarredList,
+                customListView = new AccommodationCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId ); //hotelStarredList,
             } else {
                 for( int i = 0; i < hotelSamples.size(); i++ ){
                     if( hotelSamples.get(i).getAddress().contains(s) && hotelSamples.get(i).getType().equals(t) ){
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, isChecked );// hotelStarredList,
+                customListView = new AccommodationCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId );// hotelStarredList,
             }
         } else {
             if( s.equals("View All") && t.equals("View All") ) {
@@ -180,28 +196,28 @@ public class AccommodationListActivity extends AppCompatActivity {
                     }
                 }
                 //temp.addAll(hotelStarredList);
-                customListView = new AccommodationCustomListView(this, temp, isChecked ); //hotelStarredList,
+                customListView = new AccommodationCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId ); //hotelStarredList,
             } else if( s.equals("View All") ) {
                 for (int i = 0; i < hotelSamples.size(); i++) {
                     if (hotelSamples.get(i).isFavorite() && hotelSamples.get(i).getType().equals(t)) {
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, isChecked ); //hotelStarredList,
+                customListView = new AccommodationCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId ); //hotelStarredList,
             } else if( t.equals("View All") ){
                 for( int i = 0; i < hotelSamples.size(); i++ ){
                     if(hotelSamples.get(i).isFavorite() && hotelSamples.get(i).getAddress().contains(s) ){
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, isChecked ); // hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId ); // hotelStarredList, isChecked );
             } else {
                 for( int i = 0; i < hotelSamples.size(); i++ ){
                     if( hotelSamples.get(i).isFavorite() && hotelSamples.get(i).getAddress().contains(s) && hotelSamples.get(i).getType().equals(t) ){
                         temp.add(hotelSamples.get(i));
                     }
                 }
-                customListView = new AccommodationCustomListView(this, temp, isChecked ); // hotelStarredList, isChecked );
+                customListView = new AccommodationCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId ); // hotelStarredList, isChecked );
             }
         }
 
@@ -222,17 +238,39 @@ public class AccommodationListActivity extends AppCompatActivity {
                         hotelSamples.add(forDB);
                     }
                 }
-                AccommodationCustomListView customListView = new AccommodationCustomListView(AccommodationListActivity.this, hotelSamples, sGPS.isChecked()); //hotelStarredList, sGPS.isChecked());
+                AccommodationCustomListView customListView = new AccommodationCustomListView(AccommodationListActivity.this, hotelSamples, sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId );
                 list.setAdapter(customListView);
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
+
+
         });
 
 
     }
+
+
+    public int getREQUEST_MODE() {
+        return REQUEST_MODE;
+    }
+
+    public String getCityId() {
+        return cityId;
+    }
+
+    public String getTourId() {
+        return tourId;
+    }
+
+    public String getCurPlaceId() {
+        return curPlaceId;
+    }
+
+
+
 }
 
 

@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.cewit.fm1.models.Accommodation;
 import com.cewit.fm1.models.Tour;
+import com.cewit.fm1.util.ActivityHelper;
 
 import java.util.List;
 
@@ -31,12 +32,21 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
     //private List<Accommodation> favorites;
     private Activity context;
     private boolean isGPSOn;
+    int REQUEST_MODE;
+//    String cityId;
+    String tourId;
+    String curPlaceId;
 
-    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet,  boolean isGPSOn) {
+
+
+    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet,  boolean isGPSOn, int rm, String ti, String cpi) {
         super(context, R.layout.accom_custom_list_view, dataSet);
         this.context = context;
         this.dataSet = dataSet;
         this.isGPSOn = isGPSOn;
+        REQUEST_MODE = rm;
+        tourId = ti;
+        curPlaceId = cpi;
     }
 
     //private Accommodation accom;
@@ -98,10 +108,8 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
         final ImageView ivhf = viewHolder.ivAccomStar;
         if (accom.isFavorite()) {
             viewHolder.ivAccomStar.setImageResource(R.drawable.star_filled);
-            System.out.println("XXXXXXXXX" + accom.getName());
         } else {
             viewHolder.ivAccomStar.setImageResource(R.drawable.star_blank);
-            System.out.println("XXXXXXXXX" + accom.getName());
         }
 
         viewHolder.ivAccomStar.setClickable(true);
@@ -134,10 +142,18 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
                         "Yes",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                Intent intent = new Intent(context, ViewTourActivity.class);
-                                //TODO IMPORTANT Add more intent extras here and go back properly
-                                intent.putExtra("HOTEL_NAME", accomName);
-                                context.startActivity(intent);
+//                                Intent intent = new Intent(context, ViewTourActivity.class);
+//                                //TODO IMPORTANT Add more intent extras here and go back properly
+//                                intent.putExtra("HOTEL_NAME", accomName);
+//                                context.startActivity(intent);
+
+                                Intent intent2 = new Intent( context, ViewTourActivity.class);
+                                intent2.putExtra(ActivityHelper.REFRESH_MODE, REQUEST_MODE);
+                                intent2.putExtra(ActivityHelper.NEW_PLACE_ID, accom.getId());
+                                intent2.putExtra(ActivityHelper.TOUR_ID, tourId);
+                                intent2.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+                                context.startActivity(intent2);
+                                //context.finish();
 
                                 //dialog.cancel();
                             }
