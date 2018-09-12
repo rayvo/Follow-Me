@@ -148,7 +148,7 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 filterList.add(restaurantList.get(i));
                             }
                         }
-                        RestaurantListView =new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView =new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
                     }
                     else{
@@ -177,7 +177,7 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 filterList.add(restaurantList.get(i));
                             }
                         }
-                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
 
                     } else {
@@ -189,7 +189,7 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 temp.add(a);
                             }
                         }
-                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, temp, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
                     }
                 }
@@ -199,8 +199,12 @@ public class RestaurantListActivity extends AppCompatActivity {
                         list.setAdapter(RestaurantListView);
                     }
                     else{
-                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
+                        //Hi
+
+                        //why is this not commiting?
+                        System.out.println("");
                     }
 
                 }
