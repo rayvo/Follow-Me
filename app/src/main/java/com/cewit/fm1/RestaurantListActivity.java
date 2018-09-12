@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.media.Image;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ActionProvider;
@@ -29,8 +30,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.cewit.fm1.models.Accommodation;
 import com.cewit.fm1.models.Coordinate;
 import com.cewit.fm1.models.Restaurant;
+import com.cewit.fm1.util.ActivityHelper;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 //import com.google.android.gms.location.FusedLocationProviderClient;
 //import com.google.android.gms.location.LocationServices;
 //import com.google.android.gms.location.LocationSettingsRequest;
@@ -54,6 +62,12 @@ public class RestaurantListActivity extends AppCompatActivity {
     RestaurantCustomListView RestaurantListView;
     Activity context;
     Coordinate cords;
+
+    Restaurant forDB;
+    int REQUEST_MODE;
+    String cityId;
+    String tourId;
+    String curPlaceId;
 //    private FusedLocationProviderClient client;
 
 
@@ -68,11 +82,16 @@ public class RestaurantListActivity extends AppCompatActivity {
         list = findViewById(R.id.lvRestaurantList);
         context = this;
         cords = new Coordinate(0.0, 0.0);
-        //read in data
-        readData();
+
+        Intent intent = this.getIntent();
+        //Check if this is a refresh
+        REQUEST_MODE = intent.getIntExtra(ActivityHelper.REFRESH_MODE, 0);
+        cityId = intent.getStringExtra(ActivityHelper.CITY_ID);
+        tourId = intent.getStringExtra(ActivityHelper.TOUR_ID);
+        curPlaceId = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
 
         //run the custom list view
-        RestaurantListView = new RestaurantCustomListView(this, restaurantList, starSet, cords);
+        RestaurantListView = new RestaurantCustomListView(this, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
         list.setAdapter(RestaurantListView);
 
         //------------------- INIT CUISINE SPINNER ------------------- //
@@ -129,11 +148,11 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 filterList.add(restaurantList.get(i));
                             }
                         }
-                        RestaurantListView = new RestaurantCustomListView(context, filterList,starSet,cords);
+                        RestaurantListView =new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
                     }
                     else{
-                        RestaurantListView = new RestaurantCustomListView(context, restaurantList,starSet, cords);
+                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
                     }
                 }
@@ -158,7 +177,7 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 filterList.add(restaurantList.get(i));
                             }
                         }
-                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords);
+                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
 
                     } else {
@@ -170,17 +189,17 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 temp.add(a);
                             }
                         }
-                        RestaurantListView = new RestaurantCustomListView(context, temp, starSet, cords);
+                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
                     }
                 }
                 else{
                     if(spinner.getSelectedItemPosition()<2){
-                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords);
+                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
                     }
                     else{
-                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords);
+                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
                         list.setAdapter(RestaurantListView);
                     }
 
@@ -229,6 +248,48 @@ public class RestaurantListActivity extends AppCompatActivity {
 //            }
 //        });
 
+        readResData();
+    }
+
+    private void readResData() {
+        //Data Preparation
+        DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("places");
+        refPlaces.orderByChild("type").equalTo("Restaurant").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot accomSnapshot : dataSnapshot.getChildren()) {
+                    forDB = accomSnapshot.getValue(Restaurant.class);
+                    if(forDB !=null){
+                        restaurantList.add(forDB);
+                    }
+                }
+                RestaurantCustomListView customListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                list.setAdapter(customListView);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+
+
+        });
+
+    }
+
+    public int getREQUEST_MODE() {
+        return REQUEST_MODE;
+    }
+
+    public String getCityId() {
+        return cityId;
+    }
+
+    public String getTourId() {
+        return tourId;
+    }
+
+    public String getCurPlaceId() {
+        return curPlaceId;
     }
 
 //    private void requestPermission() {
@@ -257,54 +318,5 @@ public class RestaurantListActivity extends AppCompatActivity {
 //
 //    }
 
-    private void readData(){
-
-        InputStream inputStream = getResources().openRawResource(R.raw.resdata);
-        int i = 001;
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        try {
-            String csvLine = reader.readLine();
-            csvLine = "";
-            while ((csvLine = reader.readLine()) != null) {
-                String[] row = csvLine.split(",");
-
-                String id = row[0];
-                String name = row[1];
-                String address = row[2];
-                String cityId = row[3];
-                String contact = row[4];
-                String site = row[5];
-                String info = row[6];
-                String email = row[7];
-                long lat = Long.parseLong(row[8]);
-                long lng = Long.parseLong(row[9]);
-//                long lat = row[8];
-//                long ?lng = row[9];
-                int rate = Integer.parseInt(row[10]);
-                String openTime = row[11];
-                String closeTime = row[12];
-                int entranceFee = Integer.parseInt(row[13]);
-                List<Integer> imageIds = new ArrayList<>();
-                imageIds.add(Integer.parseInt(row[14]));
-                String type = row[15];
-                boolean isFavorite = Boolean.parseBoolean(row[16]);
-                String resType = row[17];
-
-                Restaurant tempRestaurant = new Restaurant(id, name, address, cityId, contact, site, info, email, lat, lng, rate, openTime, closeTime, entranceFee, imageIds, type, isFavorite, resType);
-                restaurantList.add(tempRestaurant);
-                i++;
-            }
-        }
-        catch (IOException ex) {
-            throw new RuntimeException("Error in reading CSV file: "+ex);
-        } finally {
-            try {
-                inputStream.close();
-            }
-            catch (IOException e) {
-                throw new RuntimeException("Error while closing input stream: "+e);
-            }
-        }
-    }
 
 }

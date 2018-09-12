@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.cewit.fm1.models.Coordinate;
 import com.cewit.fm1.models.Restaurant;
+import com.cewit.fm1.util.ActivityHelper;
 
 import org.w3c.dom.Text;
 
@@ -35,12 +36,19 @@ public class RestaurantCustomListView extends ArrayAdapter<Restaurant> {
     private Activity context;
     private Coordinate cords;
 
-    public RestaurantCustomListView(Activity context, List<Restaurant> dataSet, List<Restaurant> starSet, Coordinate co){
+    int REQUEST_MODE;
+    String tourId;
+    String curPlaceId;
+
+    public RestaurantCustomListView(Activity context, List<Restaurant> dataSet, List<Restaurant> starSet, Coordinate co, int rm, String tI, String cI){
         super(context, R.layout.restaurant_custom_list_view, dataSet);
         this.context = context;
         this.dataSet = dataSet;
         this.starSet = starSet;
         this.cords = co;
+        this.REQUEST_MODE = rm;
+        this.tourId = tI;
+        this.curPlaceId = cI;
     }
 
 //    private Restaurant res;
@@ -159,7 +167,13 @@ public class RestaurantCustomListView extends ArrayAdapter<Restaurant> {
                 confirm.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        context.startActivity(new Intent(context, MainActivity.class));
+//                        context.startActivity(new Intent(context, MainActivity.class));
+                        Intent intent2 = new Intent( context, ViewTourActivity.class);
+                        intent2.putExtra(ActivityHelper.REFRESH_MODE, REQUEST_MODE);
+                        intent2.putExtra(ActivityHelper.NEW_PLACE_ID, res.getId());
+                        intent2.putExtra(ActivityHelper.TOUR_ID, tourId);
+                        intent2.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+                        context.startActivity(intent2);
                     }
                 });
 
