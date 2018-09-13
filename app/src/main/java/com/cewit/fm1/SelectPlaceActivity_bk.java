@@ -2,20 +2,16 @@ package com.cewit.fm1;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.cewit.fm1.models.Place;
-import com.cewit.fm1.models.Tour;
 import com.cewit.fm1.util.ActivityHelper;
-import com.cewit.fm1.util.Utility;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,8 +26,8 @@ import java.util.List;
  * qvo@cs.stonybrook.edu
  */
 
-public class SelectPlaceActivity extends Activity {
-    private static final String TAG = SelectPlaceActivity.class.getName();
+public class SelectPlaceActivity_bk extends Activity {
+    private static final String TAG = SelectPlaceActivity_bk.class.getName();
 
     private String cityId;
     private String tourId;
@@ -61,20 +57,20 @@ public class SelectPlaceActivity extends Activity {
         lst = (ListView)findViewById(R.id.lstFoundPlaces);
 
         DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("places");
-        refPlaces.orderByChild("cityId").equalTo(cityId).addChildEventListener(new ChildEventListener() {
+        /*refPlaces.orderByChild("cityId").equalTo(cityId).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 Place place = dataSnapshot.getValue(Place.class);
                 places.add(place);
                 Log.d(TAG,"Added place:" + place.getName());
 
-                PlaceCustomListView customListView = new PlaceCustomListView(SelectPlaceActivity.this, places);
+                PlaceCustomListView customListView = new PlaceCustomListView(SelectPlaceActivity_bk.this, places);
                 lst.setAdapter(customListView);
                 lst.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Place place = places.get(position);
-                        Intent intent = new Intent(SelectPlaceActivity.this, ViewTourActivity.class);
+                        Intent intent = new Intent(SelectPlaceActivity_bk.this, ViewTourActivity.class);
                         intent.putExtra(ActivityHelper.REFRESH_MODE, REQUEST_MODE);
                         intent.putExtra(ActivityHelper.NEW_PLACE_ID, place.getId());
                         intent.putExtra(ActivityHelper.TOUR_ID, tourId);
@@ -106,6 +102,6 @@ public class SelectPlaceActivity extends Activity {
 
             }
         });
-
+*/
     }
 }

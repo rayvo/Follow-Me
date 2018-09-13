@@ -98,5 +98,37 @@ public class Tour implements Serializable {
     public void setCityId(String cityId) {
         this.cityId = cityId;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+    public void setTotalTime(int totalTime) {
+        this.totalTime = totalTime;
+    }
+
+    public void setTotalCost(int totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public void setTotalDistance(int totalDistance) {
+        this.totalDistance = totalDistance;
+    }
+
+    public void setDays(HashMap<String, List<String>> days) {
+        this.days = days;
+    }
+
+    public void setImageIds(List<String> imageIds) {
+        this.imageIds = imageIds;
+    }
 }
 

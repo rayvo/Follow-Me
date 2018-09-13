@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.cewit.fm1.models.Tour;
+import com.cewit.fm1.util.Utility;
 
 import java.util.List;
 
@@ -48,8 +49,7 @@ public class SearchTourResultCustomListView extends ArrayAdapter<Tour> {
         }
         viewHolder.tvTourName.setText(tour.getName());
         viewHolder.tvTourDescription.setText(tour.getInfo());
-        String tourSummary = tour.getTotalCost() + "KRW" + "/" + tour.getTotalTime()
-                            + "hours" + "/" + tour.getTotalDistance() + "Km";
+        String tourSummary = Utility.formatDistance(tour.getTotalDistance()) + "/" + Utility.formatTime(tour.getTotalTime());
         viewHolder.tvTourSummary.setText(tourSummary);
         return r;
 

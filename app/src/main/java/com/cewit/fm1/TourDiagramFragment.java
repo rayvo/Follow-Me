@@ -41,6 +41,7 @@ public class TourDiagramFragment extends Fragment {
     //From the Activity
     private HashMap<String, List<TransportView>> transportViewHash;
     private HashMap<String, List<PlaceView>> placeViewHash;
+    private String[] daySummaries;
     private Activity activity;
 
     private void setActivity(Activity mActivity) {
@@ -77,12 +78,15 @@ public class TourDiagramFragment extends Fragment {
     private TransportView curTransportView;
 
 
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.tour_diagram_fragment_tab, container, false);
         lilDiagram = (LinearLayout) rootView.findViewById(R.id.lilDiagram);
         lilDiagram.setOrientation(LinearLayout.VERTICAL);
+
+        daySummaries = getArguments().getStringArray("DAY_SUMMARY");
 
         placeViewHash = (HashMap<String, List<PlaceView>>)getArguments().getSerializable("PLACE_VIEW_HASH");
         transportViewHash = (HashMap<String, List<TransportView>>)getArguments().getSerializable("TRANSPORT_VIEW_HASH");
@@ -104,7 +108,15 @@ public class TourDiagramFragment extends Fragment {
                 tvDayTitle.setTextSize(22);
                 tvDayTitle.setTextColor(Color.WHITE);
                 tvDayTitle.setBackgroundColor(Color.DKGRAY);
-                lilDiagram.addView(tvDayTitle);
+
+
+                TextView tvDaySummary = new TextView(this.activity.getApplicationContext());
+                tvDaySummary.setText("DAY " + (i+1) + ":\t\t\t" + daySummaries[i]);
+                tvDaySummary.setTextSize(22);
+                tvDaySummary.setTextColor(Color.WHITE);
+                tvDaySummary.setBackgroundColor(Color.DKGRAY);
+
+                lilDiagram.addView(tvDaySummary);
 
                 //add diagram for this day
                 TableLayout tblDayDiagram = new TableLayout(this.activity.getApplicationContext());

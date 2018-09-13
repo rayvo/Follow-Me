@@ -8,10 +8,12 @@ import com.cewit.fm1.models.Travel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Taeyu Im on 18. 7. 18.
@@ -44,7 +46,16 @@ public class Utility {
     }
 
     public static String formatDistance(int distance) {
-        return ((float) distance) / 1000 + "Km";
+        DecimalFormat df = new DecimalFormat("#.0");
+        double newDistance = ((double) distance) / 1000;
+        String strDistance = df.format(newDistance);
+
+        if (newDistance < 1) {
+            strDistance = "0" + strDistance;
+        }
+
+
+        return strDistance + "Km";
     }
 
     public static String formatTime(int time) {
@@ -91,7 +102,14 @@ public class Utility {
                             }
                             break;
                             default: // both
-                                return transports.get(0);
+                                Random r = new Random();
+                                int rand =  r.nextInt();
+                                int flag = rand%2;
+                                if (flag == 0) {
+                                    transports.get(0);
+                                } else {
+                                    transports.get(1);
+                                }
                     }
                     return null;
                 }

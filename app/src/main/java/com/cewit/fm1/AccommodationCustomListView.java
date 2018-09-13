@@ -36,10 +36,11 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
 //    String cityId;
     String tourId;
     String curPlaceId;
+    String strStartTime;
 
 
 
-    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet,  boolean isGPSOn, int rm, String ti, String cpi) {
+    public AccommodationCustomListView(@NonNull Activity context, List<Accommodation> dataSet,  boolean isGPSOn, int rm, String ti, String cpi, String mStartTime) {
         super(context, R.layout.accom_custom_list_view, dataSet);
         this.context = context;
         this.dataSet = dataSet;
@@ -47,6 +48,7 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
         REQUEST_MODE = rm;
         tourId = ti;
         curPlaceId = cpi;
+        this.strStartTime = mStartTime;
     }
 
     //private Accommodation accom;
@@ -151,8 +153,11 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
                                 intent2.putExtra(ActivityHelper.REFRESH_MODE, REQUEST_MODE);
                                 intent2.putExtra(ActivityHelper.NEW_PLACE_ID, accom.getId());
                                 intent2.putExtra(ActivityHelper.TOUR_ID, tourId);
+                                intent2.putExtra(ActivityHelper.START_TIME, strStartTime);
                                 intent2.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
                                 context.startActivity(intent2);
+
+
                                 //context.finish();
 
                                 //dialog.cancel();

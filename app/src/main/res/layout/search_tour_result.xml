@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".SearchTourResultActivity">
 
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="There is no available tour met the search conditions! \n Please try again"
+        android:textStyle="bold"
+        android:textSize="25dp"
+        android:visibility="visible"/>
 
     <ListView
         android:id="@+id/lstFoundTours"

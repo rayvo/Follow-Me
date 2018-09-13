@@ -68,6 +68,8 @@ public class RestaurantListActivity extends AppCompatActivity {
     String cityId;
     String tourId;
     String curPlaceId;
+    String strStartTime;
+
 //    private FusedLocationProviderClient client;
 
 
@@ -89,9 +91,11 @@ public class RestaurantListActivity extends AppCompatActivity {
         cityId = intent.getStringExtra(ActivityHelper.CITY_ID);
         tourId = intent.getStringExtra(ActivityHelper.TOUR_ID);
         curPlaceId = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
+        strStartTime = intent.getStringExtra(ActivityHelper.START_TIME);
+
 
         //run the custom list view
-        RestaurantListView = new RestaurantCustomListView(this, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+        RestaurantListView = new RestaurantCustomListView(this, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
         list.setAdapter(RestaurantListView);
 
         //------------------- INIT CUISINE SPINNER ------------------- //
@@ -148,11 +152,11 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 filterList.add(restaurantList.get(i));
                             }
                         }
-                        RestaurantListView =new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView =new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
                         list.setAdapter(RestaurantListView);
                     }
                     else{
-                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
                         list.setAdapter(RestaurantListView);
                     }
                 }
@@ -177,7 +181,7 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 filterList.add(restaurantList.get(i));
                             }
                         }
-                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
                         list.setAdapter(RestaurantListView);
 
                     } else {
@@ -189,17 +193,17 @@ public class RestaurantListActivity extends AppCompatActivity {
                                 temp.add(a);
                             }
                         }
-                        RestaurantListView = new RestaurantCustomListView(context, temp, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, temp, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
                         list.setAdapter(RestaurantListView);
                     }
                 }
                 else{
                     if(spinner.getSelectedItemPosition()<2){
-                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
                         list.setAdapter(RestaurantListView);
                     }
                     else{
-                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                        RestaurantListView = new RestaurantCustomListView(context, filterList, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
                         list.setAdapter(RestaurantListView);
                         //Hi
 
@@ -267,7 +271,7 @@ public class RestaurantListActivity extends AppCompatActivity {
                         restaurantList.add(forDB);
                     }
                 }
-                RestaurantCustomListView customListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId);
+                RestaurantCustomListView customListView = new RestaurantCustomListView(context, restaurantList, starSet, cords, REQUEST_MODE, tourId, curPlaceId, strStartTime);
                 list.setAdapter(customListView);
             }
             @Override

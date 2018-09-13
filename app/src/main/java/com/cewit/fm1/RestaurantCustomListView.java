@@ -39,8 +39,9 @@ public class RestaurantCustomListView extends ArrayAdapter<Restaurant> {
     int REQUEST_MODE;
     String tourId;
     String curPlaceId;
+    String strStartTime;
 
-    public RestaurantCustomListView(Activity context, List<Restaurant> dataSet, List<Restaurant> starSet, Coordinate co, int rm, String tI, String cI){
+    public RestaurantCustomListView(Activity context, List<Restaurant> dataSet, List<Restaurant> starSet, Coordinate co, int rm, String tI, String cI, String mStartTime){
         super(context, R.layout.restaurant_custom_list_view, dataSet);
         this.context = context;
         this.dataSet = dataSet;
@@ -49,6 +50,7 @@ public class RestaurantCustomListView extends ArrayAdapter<Restaurant> {
         this.REQUEST_MODE = rm;
         this.tourId = tI;
         this.curPlaceId = cI;
+        this.strStartTime = mStartTime;
     }
 
 //    private Restaurant res;
@@ -172,6 +174,7 @@ public class RestaurantCustomListView extends ArrayAdapter<Restaurant> {
                         intent2.putExtra(ActivityHelper.REFRESH_MODE, REQUEST_MODE);
                         intent2.putExtra(ActivityHelper.NEW_PLACE_ID, res.getId());
                         intent2.putExtra(ActivityHelper.TOUR_ID, tourId);
+                        intent2.putExtra(ActivityHelper.START_TIME, strStartTime);
                         intent2.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
                         context.startActivity(intent2);
                     }

@@ -1,10 +1,13 @@
 package com.cewit.fm1;
 
+import android.app.AlertDialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
@@ -30,14 +33,18 @@ import com.cewit.fm1.util.ActivityHelper;
 import com.cewit.fm1.util.PlaceView;
 import com.cewit.fm1.util.TransportView;
 import com.cewit.fm1.util.Utility;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -92,8 +99,17 @@ public class ViewTourActivity extends AppCompatActivity {
     private ViewPagerAdapter adapter;
     private TextView tvTourInfo;
     private TextView tvTourSummary;
+    private int totalDistance = 0;
+    private int totalTime = 0;
+    private int distancePerDay = 0;
+    private int timePerDay = 0;
+
     private int transType = 0;
     private String previousArrivalTime;
+    private String[] daySummaries;
+    private String strSkippedPlaceId;
+    private String transportChangedAtPlaceId ="";
+    private String selectedTransport ="";
 
     private void addTabs(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -113,7 +129,7 @@ public class ViewTourActivity extends AppCompatActivity {
 
 
     private boolean isSkipRefresh = false;
-    private static List<String> skippedPlaceIds = new ArrayList<String>();
+    private static List<String> skippedPlaceIds1 = new ArrayList<String>();
 
     private boolean isPlaceChanged = false;
     private String prevPlaceId;
@@ -121,6 +137,8 @@ public class ViewTourActivity extends AppCompatActivity {
     private String cityId;
 
     private boolean isPlaceAdded = false;
+    private boolean isTransportChanged = false;
+    private boolean isSpecificTransportChanged = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,6 +151,11 @@ public class ViewTourActivity extends AppCompatActivity {
         //Check the request
         intent = this.getIntent();
         tourId = intent.getStringExtra(ActivityHelper.TOUR_ID);
+        strStartTime = intent.getStringExtra(ActivityHelper.START_TIME);
+
+//Transport Changed Request
+        int isBusSelected = 0, isCarSelected = 0;
+
 
         //Check if this is a refresh
         int refreshMode = intent.getIntExtra(ActivityHelper.REFRESH_MODE, 0);
@@ -153,8 +176,7 @@ public class ViewTourActivity extends AppCompatActivity {
 
             case ActivityHelper.REFRESH_SKIP:
                 Log.d(TAG, "REFRESH_SKIP");
-                String strSkippedPlaceId = intent.getStringExtra(ActivityHelper.PLACE_ID);
-                skippedPlaceIds.add(strSkippedPlaceId);
+                strSkippedPlaceId = intent.getStringExtra(ActivityHelper.PLACE_ID);
                 isSkipRefresh = true;
                 break;
 
@@ -172,21 +194,25 @@ public class ViewTourActivity extends AppCompatActivity {
                 isPlaceAdded = true;
                 break;
 
+            case ActivityHelper.REFRESH_TRANSPORT_CHANGED:
+                Log.d(TAG, "REFRESH_TRANSPORT_CHANGED");
+                isBusSelected = intent.getIntExtra(ActivityHelper.REFRESH_BUS_SELECTED, 0);
+                isCarSelected = intent.getIntExtra(ActivityHelper.REFRESH_CAR_SELECTED, 1);
+                isTransportChanged = true;
+                break;
+            case ActivityHelper.REFRESH_SPECIFIC_TRANSPORT_CHANGED:
+                Log.d(TAG, "REFRESH_SPECIFIC_TRANSPORT_CHANGED");
+                transportChangedAtPlaceId = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
+                selectedTransport = intent.getStringExtra(ActivityHelper.TRANSPORT_CHANGED_TYPE);
+                isSpecificTransportChanged = true;
+                break;
             default: //New Activity
         }
 
         //TODO will be changed later
         transType = 1;
-
-        //Transport Changed Request
-        int isBusSelected = 0, isCarSelected = 0;
-        int isTransportChanged = intent.getIntExtra(ActivityHelper.REFRESH_TRANSPORT_CHANGED, 0);
-        if (isTransportChanged == 0) { // no change, this is the original tour. All of transport types are selected
-            isBusSelected = 1;
+        if (!isTransportChanged) { // no change, this is the original tour. All of transport types are selected
             isCarSelected = 1;
-        } else { //Transport has been changed.
-            isBusSelected = intent.getIntExtra(ActivityHelper.REFRESH_BUS_SELECTED, 0);
-            isCarSelected = intent.getIntExtra(ActivityHelper.REFRESH_CAR_SELECTED, 1);
         }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -204,18 +230,18 @@ public class ViewTourActivity extends AppCompatActivity {
         //View Preparation
 
         if (isCarSelected == 1) {
-            preferTransportType = 1;
+            transType = 1;
             chkCarTaxi.setChecked(true);
         } else {
             chkCarTaxi.setChecked(false);
         }
         if (isBusSelected == 1) {
-            preferTransportType = 2;
+            transType = 2;
             chkBus.setChecked(true);
         } else {
             chkBus.setChecked(false);
         }
-        if (isBusSelected + isCarSelected == 2) preferTransportType = 3;
+        if (isBusSelected + isCarSelected == 2) transType = 3;
 
 
         chkBus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -227,6 +253,7 @@ public class ViewTourActivity extends AppCompatActivity {
                 } else {
                     isBus = 0;
                 }
+                intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_TRANSPORT_CHANGED);
                 intent.putExtra(ActivityHelper.REFRESH_BUS_SELECTED, isBus);
                 restartActivity();
             }
@@ -268,13 +295,16 @@ public class ViewTourActivity extends AppCompatActivity {
         });
 
 
+
     }
 
 
     private void createViewHash(Tour tour) {
-        days = tour.getDays();
+    tvTourInfo.setText(tour.getInfo());
+    tvTourSummary.setText("Hello");
+    days = tour.getDays();
         times = tour.getTimes();
-
+    daySummaries = new String[days.size()];
         //Check if this is a skip refresh
         if (isSkipRefresh) {
             updateData(ActivityHelper.REFRESH_SKIP);
@@ -289,6 +319,8 @@ public class ViewTourActivity extends AppCompatActivity {
         if (isPlaceAdded) {
             updateData(ActivityHelper.REFRESH_PLACE_ADDED);
         }
+
+        // TODO TBD later
 
         strStartTime = tour.getStartTime();
         allPlaces = new ArrayList<Place>();
@@ -335,21 +367,28 @@ public class ViewTourActivity extends AppCompatActivity {
     }
 
     private void updateData(int updateMode) {
+        tour.setStartTime(strStartTime);
         switch (updateMode) {
             case ActivityHelper.REFRESH_SKIP:
-                for (String skippedPlaceId : skippedPlaceIds) {
+
                     for (int i = 0; i < days.size(); i++) { //check each day
                         List<String> placeIds = days.get(strDay + (i + 1));
                         for (int j = 0; j < placeIds.size(); j++) {
-                            if (placeIds.get(j).equals(skippedPlaceId)) {
+                            if (placeIds.get(j).equals(strSkippedPlaceId)) {
                                 days.get(strDay + (i + 1)).remove(j);
+                                //tour.getDays().get(strDay + (i + 1)).remove(j);
                                 times.get(strDay + (i + 1)).remove(j);
+                                //tour.getTimes().get(strDay + (i + 1)).remove(j);
 
                             }
                         }
 
                     }
-                }
+
+
+                //Update database
+                saveNewTour();
+
                 break;
             case ActivityHelper.REFRESH_PLACE_CHANGED:
                 for (int i = 0; i < days.size(); i++) { //check each day
@@ -362,6 +401,8 @@ public class ViewTourActivity extends AppCompatActivity {
                     }
 
                 }
+                //Update database
+                saveNewTour();
                 break;
 
             case ActivityHelper.REFRESH_PLACE_ADDED:
@@ -413,6 +454,8 @@ public class ViewTourActivity extends AppCompatActivity {
                         }
 
                     }
+                    //Update database
+                    saveNewTour();
                     break;
                 }
         }
@@ -422,6 +465,7 @@ public class ViewTourActivity extends AppCompatActivity {
     private int totalRequiredTravels;
 
     private void createViews() {
+        Log.d(TAG,"createViews(): started");
         placeViewHash = new HashMap<String, List<PlaceView>>();
         travels = new ArrayList<Travel>();
         totalRequiredTravels = allPlaces.size() - 1 - (days.size() - 1);
@@ -472,6 +516,7 @@ public class ViewTourActivity extends AppCompatActivity {
     }
 
     private PlaceView getPlaceView(Place place) {
+        Log.d(TAG,"PlaceView(): started");
         PlaceView view = new PlaceView(this.getApplicationContext());
         if (place != null) {
             String strName = place.getName();
@@ -494,7 +539,7 @@ public class ViewTourActivity extends AppCompatActivity {
             view.getTvName().setText(strName);
         }
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(0, 20, 0, 0);
+        layoutParams.setMargins(0, 10, 0, 0);
         view.getTvName().setLayoutParams(layoutParams);
         view.getTvName().getLayoutParams().width = 120;
         view.getTvName().setGravity(Gravity.CENTER);
@@ -506,6 +551,8 @@ public class ViewTourActivity extends AppCompatActivity {
     private List<Integer> placeTimes;
 
     private void createTransportView() {
+        Log.d(TAG,"createTransportView(): started");
+
         transportViewHash = new HashMap<String, List<TransportView>>();
 
         //Check if this is a refresh of changing departure time
@@ -515,6 +562,9 @@ public class ViewTourActivity extends AppCompatActivity {
         }
 
         for (int d = 0; d < days.size(); d++) { //check each day
+            distancePerDay = 0;
+            timePerDay = 0;
+
             List<String> placeIds = days.get(strDay + (d + 1));
             placeTimes = times.get(strDay + (d + 1));
             int transportIndex = 0;
@@ -525,6 +575,9 @@ public class ViewTourActivity extends AppCompatActivity {
                 String travelId = placeIds.get(p) + "_" + placeIds.get(p + 1);
                 curPlaceId = placeIds.get(p);
                 Travel travel = getTravel(travelId);
+
+
+
 
                 //Select transport type
                 boolean isCar = true;
@@ -551,13 +604,26 @@ public class ViewTourActivity extends AppCompatActivity {
                 int transTime = 0;
                 String strArrivalTime = "";
 
+
+                if (isSpecificTransportChanged) {
+                    if (curPlaceId.equals(transportChangedAtPlaceId)) {
+                        if (selectedTransport.equals(ActivityHelper.REFRESH_BUS_SELECTED)){
+                            isCar = false;
+                        } else {
+                            isCar = true;
+                        }
+                    }
+                }
+
                 if (isCar) {
                     transport = transports.get("car01");
                     if (transport != null) {
                         info = info + Utility.formatDistance(transport.getDistance()) + "/";
                         transTime = transport.getTime();
+
                         info = info + Utility.formatTime(transTime);
                         strArrivalTime = Utility.computeTime(mDepartureTime, transTime);
+
                     }
                 } else {
                     transport = transports.get("bus01");
@@ -568,6 +634,12 @@ public class ViewTourActivity extends AppCompatActivity {
                         strArrivalTime = Utility.computeTime(mDepartureTime, transTime);
                     }
                 }
+                Log.d(TAG, "distancePerDay: " + distancePerDay);
+
+                distancePerDay = distancePerDay + transport.getDistance();
+                Log.d(TAG,"transport.getDistance()"  + transport.getDistance());
+                Log.d(TAG, "distancePerDay: " + distancePerDay);
+                timePerDay = timePerDay + transTime;
 
                 int direction = computeDirection(transportIndex);
                 TransportView transportView = new TransportView(this, travel, direction, mDepartureTime, strArrivalTime, info, isCar);
@@ -699,10 +771,17 @@ public class ViewTourActivity extends AppCompatActivity {
                 transportIndex++;
             }
             transportViewHash.put(strDay + (d + 1), transportViews);
+            totalDistance = totalDistance + distancePerDay;
+            totalTime = totalTime + timePerDay;
+
+            daySummaries[d] = Utility.formatDistance(distancePerDay) + "/" + Utility.formatTime(timePerDay);
         }
+
+        tvTourSummary.setText(Utility.formatDistance(totalDistance) + "/" + Utility.formatTime(totalTime));
 
         Fragment diagramFragment = TourDiagramFragment.newInstance(ViewTourActivity.this, placeViewHash, transportViewHash);
         Bundle bundle1 = new Bundle();
+        bundle1.putStringArray("DAY_SUMMARY", daySummaries);
         bundle1.putSerializable("PLACE_VIEW_HASH", placeViewHash);
         bundle1.putSerializable("TRANSPORT_VIEW_HASH", transportViewHash);
 
@@ -782,28 +861,74 @@ public class ViewTourActivity extends AppCompatActivity {
                 ).show();
 
                 if (item.getTitle().equals("Skip")) {
-                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_SKIP);
-                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.PLACE_ID, curPlaceId);
-                    ViewTourActivity.this.finish();
-                    startActivity(ViewTourActivity.this.getIntent());
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);
+                    builder1.setMessage("Would you like to skip this?");
+                    builder1.setCancelable(true);
+
+                    builder1.setPositiveButton(
+                            "Yes",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_SKIP);
+                                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.PLACE_ID, curPlaceId);
+                                    ViewTourActivity.this.finish();
+                                    startActivity(ViewTourActivity.this.getIntent());
+                                }
+                            });
+
+                    builder1.setNegativeButton(
+                            "No",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert11 = builder1.create();
+                    alert11.show();
+
 
                 }
                 if (item.getTitle().equals("Change")) {
-                    String placeType = curPlace.getType();
-                    Intent intent;
-                    if (placeType.equalsIgnoreCase("Accommodation")) {
-                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), AccommodationListActivity.class);
-                    } else if (placeType.equalsIgnoreCase("Restaurant")) {
-                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), RestaurantListActivity.class);
-                    } else {
-                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
-                    }
-                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_CHANGED);
-                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
-                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
-                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
-                    startActivity(intent);
-                    ViewTourActivity.this.finish();
+
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);
+                    builder1.setMessage("Would you like to change this destination?");
+                    builder1.setCancelable(true);
+
+                    builder1.setPositiveButton(
+                            "Yes",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    String placeType = curPlace.getType();
+                                    Intent intent;
+                                    if (placeType.equalsIgnoreCase("Accommodation")) {
+                                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), AccommodationListActivity.class);
+                                    } else if (placeType.equalsIgnoreCase("Restaurant")) {
+                                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), RestaurantListActivity.class);
+                                    } else {
+                                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), PlaceSelectionActivity.class);
+                                    }
+                                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_CHANGED);
+                                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
+                                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
+                                    intent.putExtra(ActivityHelper.START_TIME, strStartTime);
+                                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+                                    startActivity(intent);
+                                    ViewTourActivity.this.finish();
+                                }
+                            });
+
+                    builder1.setNegativeButton(
+                            "No",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert11 = builder1.create();
+                    alert11.show();
+
                 }
                 return true;
             }
@@ -831,6 +956,7 @@ public class ViewTourActivity extends AppCompatActivity {
         List<Transport> transports = new ArrayList<Transport>(transportsHash.values());
         String strOption = "";
         String transName, transDist, transCost, transTime;
+        int index = 0;
         for (Transport transport : transports) {
             transName = transport.getName();
             if (transName == null) transName = "";
@@ -843,29 +969,108 @@ public class ViewTourActivity extends AppCompatActivity {
             transDist = ((float) transport.getDistance()) / 1000 + "Km";
             transTime = transport.getTime() + "분";
 
-            strOption = transport.getType() + " " + transName + ": "
-                    + transDist + "/" + transTime + "/" + transCost;
+            strOption = transport.getType() + " " + transName + ": " + transDist + "/" + transTime + "/" + transCost;
             menu.getMenu().add(strOption);
+            Intent menuItemIntent = new Intent();
+            menuItemIntent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+            menu.getMenu().getItem(index).setIntent(menuItemIntent);
+            index++;
+
         }
         menu.getMenu().add("Add Place");
         menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+
                 Toast.makeText(
                         ViewTourActivity.this.getApplicationContext(),
                         "You Clicked : " + item.getTitle(),
                         Toast.LENGTH_SHORT
                 ).show();
 
-                if (item.getTitle().equals("Add Place")) {
-                    Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), SelectPlaceActivity.class);
 
-                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_ADDED);
-                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
-                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
-                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
-                    startActivity(intent);
-                    ViewTourActivity.this.finish();
+                String selectedItem = item.getTitle().toString();
+
+
+                if (selectedItem.contains(":")) {
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);
+                    builder1.setMessage("Would you like to change another transport?");
+                    builder1.setCancelable(true);
+                    final String transportType = selectedItem.substring(0, selectedItem.indexOf(":"));
+                    Intent intent = item.getIntent();
+                    final String curPID = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
+
+                    builder1.setPositiveButton(
+                            "Yes",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), ViewTourActivity.class);
+                                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_SPECIFIC_TRANSPORT_CHANGED);
+                                    if (transportType.contains("Bus") ) {
+                                        intent.putExtra(ActivityHelper.TRANSPORT_CHANGED_TYPE, ActivityHelper.REFRESH_BUS_SELECTED);
+
+                                    } else {
+                                        intent.putExtra(ActivityHelper.TRANSPORT_CHANGED_TYPE, ActivityHelper.REFRESH_CAR_SELECTED);
+
+                                    }
+                                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPID);
+                                    startActivity(intent);
+                                    ViewTourActivity.this.finish();
+                                }
+                            });
+
+                    builder1.setNegativeButton(
+                            "No",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert11 = builder1.create();
+                    alert11.show();
+
+                }
+
+
+                if (item.getTitle().equals("Add Place")) {
+
+
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);
+                    builder1.setMessage("Would you like to add new destination?");
+                    builder1.setCancelable(true);
+
+                    builder1.setPositiveButton(
+                            "Yes",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), PlaceSelectionActivity.class);
+
+                                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_ADDED);
+                                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
+                                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
+                                    intent.putExtra(ActivityHelper.START_TIME, strStartTime);
+                                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+                                    startActivity(intent);
+                                    ViewTourActivity.this.finish();
+                                }
+                            });
+
+                    builder1.setNegativeButton(
+                            "No",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+
+                    AlertDialog alert11 = builder1.create();
+                    alert11.show();
+
+
+
+
+
                 }
                 return true;
             }
@@ -915,4 +1120,22 @@ public class ViewTourActivity extends AppCompatActivity {
         this.finish();
     }
 
+    private void saveNewTour() {
+        FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
+        DatabaseReference refTours = mDatabase.getReference("tours");
+
+        DateFormat df = new SimpleDateFormat("yyyyMMdd");
+        Date date = new Date();
+        String today = df.format(date);
+
+        if (!tourId.contains("_" + today)) {
+            tourId = tourId + "_" + today;
+            tour.setId(tourId);
+            tour.setName(tour.getName() + "_" + today);
+        }
+
+        refTours = mDatabase.getReference("tours");
+        refTours.child(tourId).setValue(tour);
+        Toast.makeText(this, "Tour Modified", Toast.LENGTH_LONG).show();
+    }
 }

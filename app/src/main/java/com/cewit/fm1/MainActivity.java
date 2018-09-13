@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     String countryId;
 
     //Layout
-    Spinner spiCountries, spiCities;
+    Spinner spiDaysOfTravel, spiCountries, spiCities;
 
     private ArrayAdapter<String> adCountry;
     private TableLayout tblInput;
@@ -61,7 +61,9 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSearch, btnAddCity, btnRemoveCity;
 
     String cityId;
+    int numTravelDays;
 
+    String startTime;
 
     String[] arrCities;
     HashMap<String, String> hasCities;
@@ -74,9 +76,23 @@ public class MainActivity extends AppCompatActivity {
 
 
         //View Preparation
+        spiDaysOfTravel = (Spinner) findViewById(R.id.spiDaysOfTravel);
         spiCities = (Spinner) findViewById(R.id.spiCities);
         spiCountries = (Spinner) findViewById(R.id.spiCountries);
         tblInput = (TableLayout) findViewById(R.id.tblInput);
+
+        spiDaysOfTravel.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                numTravelDays = position + 1;
+                Log.d(TAG, "Selected numTravelDays: " + numTravelDays);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
 
         tvStartDate = (TextView) findViewById(R.id.tvStartDate);
         tvStartDate.setOnClickListener(new View.OnClickListener() {
@@ -118,7 +134,9 @@ public class MainActivity extends AppCompatActivity {
                             public void onTimeSet(TimePicker view, int hourOfDay,
                                                   int minute) {
 
-                                tvStartTime.setText(hourOfDay + ":" + minute);
+                                startTime = hourOfDay + ":"  + minute;
+                                tvStartTime.setText(startTime);
+
                             }
                         }, mHour, mMinute, false);
                 timePickerDialog.show();
@@ -131,7 +149,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, SearchTourResultActivity.class);
+                intent.putExtra(ActivityHelper.START_TIME, startTime);
                 intent.putExtra(ActivityHelper.CITY_ID, cityId);
+                intent.putExtra(ActivityHelper.DAYS_OF_TRAVEL, numTravelDays);
                 startActivity(intent);
             }
         });

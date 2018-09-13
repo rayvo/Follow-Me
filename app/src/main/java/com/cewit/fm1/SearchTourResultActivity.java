@@ -42,6 +42,7 @@ public class SearchTourResultActivity extends AppCompatActivity {
 
     //LIST VIEW
     ListView lst;
+    TextView tvMessage;
     //=================================================================
 
 
@@ -49,6 +50,7 @@ public class SearchTourResultActivity extends AppCompatActivity {
 
     // Database Helper
 
+    private String startTime;
     List<Tour> tours;
 
     @Override
@@ -60,9 +62,12 @@ public class SearchTourResultActivity extends AppCompatActivity {
 
         Intent intent = this.getIntent();
         String cityId = intent.getStringExtra(ActivityHelper.CITY_ID);
+        final int daysOfTravel = intent.getIntExtra(ActivityHelper.DAYS_OF_TRAVEL, 0);
+        startTime = intent.getStringExtra(ActivityHelper.START_TIME);
 
         //View Preparation
         lst = (ListView)findViewById(R.id.lstFoundTours);
+        tvMessage = (TextView) findViewById(R.id.tvMessage);
 
         // Data Preparation
         tours = new ArrayList<Tour>();
@@ -72,22 +77,28 @@ public class SearchTourResultActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 Tour tour = dataSnapshot.getValue(Tour.class);
-                tours.add(tour);
-                Log.d(TAG,"Added tour:" + tour.getName());
+                HashMap<String, List<String>> days = tour.getDays();
+                if (days.size() == daysOfTravel) {
+                    tvMessage.setVisibility(View.GONE);
+                    tours.add(tour);
+                    Log.d(TAG,"Added tour:" + tour.getName());
 
-                SearchTourResultCustomListView customListView = new SearchTourResultCustomListView(SearchTourResultActivity.this, tours);
-                lst.setAdapter(customListView);
-                lst.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Tour tour = tours.get(position);
-                        //Toast.makeText(SearchTourResultActivity.this,"Tour:" + tour.getName(), Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(SearchTourResultActivity.this, ViewTourActivity.class);
-                        intent.putExtra(ActivityHelper.TOUR_ID, tour.getId());
-                        Log.d(TAG,"DUYVO-101: Seleted TourID:" + tour.getId() + "(" + tour.getName() + ")");
-                        startActivity(intent);
-                    }
-                });
+                    SearchTourResultCustomListView customListView = new SearchTourResultCustomListView(SearchTourResultActivity.this, tours);
+                    lst.setAdapter(customListView);
+                    lst.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            Tour tour = tours.get(position);
+                            //Toast.makeText(SearchTourResultActivity.this,"Tour:" + tour.getName(), Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(SearchTourResultActivity.this, ViewTourActivity.class);
+                            intent.putExtra(ActivityHelper.TOUR_ID, tour.getId());
+                            intent.putExtra(ActivityHelper.START_TIME, startTime);
+                            Log.d(TAG,"DUYVO-101: Seleted TourID:" + tour.getId() + "(" + tour.getName() + ")");
+                            startActivity(intent);
+                        }
+                    });
+                }
+
             }
 
             @Override
@@ -110,51 +121,6 @@ public class SearchTourResultActivity extends AppCompatActivity {
 
             }
         });
-        /*refTours.orderByChild("totalTime").addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                tours.clear();
-                Tour tour = dataSnapshot.getValue(Tour.class);
-                tours.add(tour);
-
-
-                //Update
-                SearchTourResultCustomListView customListView = new SearchTourResultCustomListView(SearchTourResultActivity.this, tours);
-                lst.setAdapter(customListView);
-                lst.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Tour tour = tours.get(position);
-                        //Toast.makeText(SearchTourResultActivity.this,"Tour:" + tour.getName(), Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(SearchTourResultActivity.this, ViewTourActivity.class);
-                        intent.putExtra(ActivityHelper.TOUR_ID, tour.getId());
-                        startActivity(intent);
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
-*/
 
     }
 }

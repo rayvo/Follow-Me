@@ -265,7 +265,7 @@ public class TourSummaryFragment extends Fragment {
 
             //add Day-------------------------------------------------------------------------------
             TextView tvDayTitle = new TextView(this.context);
-            tvDayTitle.setText("Day " + (i + 1));
+            tvDayTitle.setText("DAY " + (i + 1));
             tvDayTitle.setTextSize(22);
             tvDayTitle.setTextColor(Color.WHITE);
             tvDayTitle.setBackgroundColor(Color.DKGRAY);
