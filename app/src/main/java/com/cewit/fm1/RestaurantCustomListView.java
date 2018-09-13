@@ -275,7 +275,7 @@ public class RestaurantCustomListView extends ArrayAdapter<Restaurant> {
             tvNumber = v.findViewById(R.id.tvResNumber);
             ivImage = v.findViewById(R.id.ivResImage);
             btnSelect = v.findViewById(R.id.btnResSelect);
-            tvTime = v.findViewById(R.id.tvResTime);
+            tvTime = v.findViewById(R.id.tvName);
             tvCuisine = v.findViewById(R.id.tvResType);
             tvLocation = v.findViewById(R.id.tvResAddress);
             ivFav = v.findViewById(R.id.ivResStar);

@@ -28,7 +28,8 @@
         <activity android:name=".ChangePlaceActivity" />
         <activity android:name=".AddPlaceActivity" />
         <activity android:name=".PlaceSelectionActivity" />
-        <activity android:name=".AccommodationListActivity" />
+        <activity android:name=".AccommodationListActivity"/>
+        <activity android:name=".RestaurantListActivity"/>
     </application>
 
 </manifest>

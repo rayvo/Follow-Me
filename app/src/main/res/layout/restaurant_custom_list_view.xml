@@ -56,8 +56,8 @@
             android:id="@+id/tvResType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/tvResTime"
-            android:layout_alignStart="@+id/tvResName"
+            android:layout_above="@+id/tvName"
+            android:layout_alignStart="@+id/tvName"
             android:layout_weight="1"
             android:text="ZZZZ"
             android:textColor="#747474" />
