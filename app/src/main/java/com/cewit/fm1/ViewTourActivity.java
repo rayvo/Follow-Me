@@ -301,7 +301,7 @@ public class ViewTourActivity extends AppCompatActivity {
 
     private void createViewHash(Tour tour) {
     tvTourInfo.setText(tour.getInfo());
-    tvTourSummary.setText("Hello");
+    tvTourSummary.setText("");
     days = tour.getDays();
         times = tour.getTimes();
     daySummaries = new String[days.size()];
@@ -322,7 +322,7 @@ public class ViewTourActivity extends AppCompatActivity {
 
         // TODO TBD later
 
-        strStartTime = tour.getStartTime();
+        //strStartTime = tour.getStartTime();
         allPlaces = new ArrayList<Place>();
 
         if (days != null && days.size() > 0) {
