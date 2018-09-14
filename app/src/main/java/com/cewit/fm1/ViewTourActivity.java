@@ -554,8 +554,6 @@ public class ViewTourActivity extends AppCompatActivity {
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    PlaceView myView = (PlaceView) v;
-
                     Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), ViewPlaceActivity.class);
                     intent.putExtra(ActivityHelper.PLACE_ID, placeId);
                     intent.putExtra(ActivityHelper.CITY_ID, cityId);
@@ -563,8 +561,6 @@ public class ViewTourActivity extends AppCompatActivity {
                     intent.putExtra(ActivityHelper.TOUR_ID, tourId);
                     startActivity(intent);
                     finish();
-
-                    //showPopupMenuPlace(myView);
                 }
             });
 
@@ -694,6 +690,28 @@ public class ViewTourActivity extends AppCompatActivity {
                 Log.d(TAG, "transport.getDistance()" + transport.getDistance());
                 Log.d(TAG, "distancePerDay: " + distancePerDay);
                 timePerDay = timePerDay + transTime;
+
+
+                if (place.getType().contains("Restaurant")) {
+                    String strPreviousArrivalTime = Utility.computeTime(mDepartureTime, (-1) * placeTimes.get(p));
+                    MovingView mvTimeViewExtra = getMovingView(strPreviousArrivalTime, mDepartureTime, "(" + Utility.formatTime(placeTimes.get(p)) + ")");
+                    MovingView mvPlaceViewExtra = getMovingView("Meal", "", place.getName());
+                    ContentView contentViewExtra = new ContentView(this, place.getResType().replace("Restaurant", "Food"));
+                    CostView costViewExtra = new CostView(this, place.getEntranceFee() + "");
+
+                    mvTimeViews.add(mvTimeViewExtra);
+                    mvPlaceViews.add(mvPlaceViewExtra);
+                    contentViews.add(contentViewExtra);
+                    costViews.add(costViewExtra);
+
+                    mvTimeViewHash.put(strDay + (d + 1), mvTimeViews);
+                    mvPlaceViewHash.put(strDay + (d + 1), mvPlaceViews);
+                    contentViewHash.put(strDay + (d + 1), contentViews);
+                    costViewHash.put(strDay + (d + 1), costViews);
+
+                    totalCost = totalCost + place.getEntranceFee();
+
+                }
 
 
                 MovingView mvTimeView = getMovingView(mDepartureTime, strArrivalTime, "(" + Utility.formatTime(transport.getTime()) + ")");
@@ -832,6 +850,8 @@ public class ViewTourActivity extends AppCompatActivity {
                 previousArrivalTime = strArrivalTime;
                 transportViews.add(transportView);
                 transportIndex++;
+
+
 
                 mvTimeViews.add(mvTimeView);
                 mvPlaceViews.add(mvPlaceView);
