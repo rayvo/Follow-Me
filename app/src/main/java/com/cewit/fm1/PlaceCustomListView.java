@@ -28,24 +28,22 @@ import java.util.List;
  */
 
 public class PlaceCustomListView extends ArrayAdapter<Place> {
-    private static final String TAG = PlaceCustomListView.class.getName();
 
-    private int REQUEST_MODE = 0;
     private List<Place> dataSet;
-    private List<Place> favorites;
     private Activity context;
     private boolean isGPSOn;
-    private String tourId;
-    private String curPlaceId;
-    private String strStartTime;
+    int REQUEST_MODE;
+    //    String cityId;
+    String tourId;
+    String curPlaceId;
+    String strStartTime;
 
 
 
-    public PlaceCustomListView(@NonNull Activity context, List<Place> dataSet, List<Place> favorites, boolean isGPSOn, int mRequestMode, String mTourId, String mCurPlaceId, String mStartTime) {
+    public PlaceCustomListView(@NonNull Activity context, List<Place> dataSet,  boolean isGPSOn, int mRequestMode, String mTourId, String mCurPlaceId, String mStartTime) {
         super(context, R.layout.place_custom_list_view, dataSet);
         this.context = context;
         this.dataSet = dataSet;
-        this.favorites = favorites;
         this.isGPSOn = isGPSOn;
         this.REQUEST_MODE = mRequestMode;
         this.tourId = mTourId;
@@ -53,7 +51,7 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
         this.strStartTime = mStartTime;
     }
 
-    private Place place;
+    //private Place;
     PlaceCustomListView.ViewHolder viewHolder;
 
     @NonNull
@@ -71,9 +69,9 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
             viewHolder = (PlaceCustomListView.ViewHolder) r.getTag();
         }
 
-        place = dataSet.get(position);
+        final Place place = dataSet.get(position);
 
-        // Edit viewHolder to have proper Place Info
+        // Edit viewHolder to have proper Accom Info
         final String strSite = place.getSite();
         viewHolder.tvPlaceName.setText(place.getName());
         viewHolder.tvPlaceName.setOnClickListener(new View.OnClickListener() {
@@ -85,7 +83,7 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
 
         viewHolder.tvPlaceAddress.setText(place.getAddress());
         viewHolder.tvPlaceNumber.setText(place.getContact());
-        viewHolder.tvPlaceType.setText(place.getAccType());
+        viewHolder.tvPlaceType.setText(place.getType());
 
         // TODO Properly set up gps and find distance
         viewHolder.tvPlaceDistance.setText("XX km");
@@ -95,12 +93,8 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
             viewHolder.tvPlaceDistance.setVisibility(View.INVISIBLE);
         }
 
-        int accomId = context.getResources().getIdentifier(place.getId(), "drawable", context.getPackageName());
-        try{
-            //viewHolder.ivPlaceImage.setImageResource(accomId);
-        } catch (Exception ex) {
-            Log.e(TAG,ex.toString());
-        }
+        int placeId = context.getResources().getIdentifier(place.getId(), "drawable", context.getPackageName());
+        viewHolder.ivPlaceImage.setImageResource(placeId);
         viewHolder.ivPlaceImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,26 +110,20 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
         final ImageView ivhf = viewHolder.ivPlaceStar;
         if (place.isFavorite()) {
             viewHolder.ivPlaceStar.setImageResource(R.drawable.star_filled);
-            if (!favorites.contains(place)) {
-                favorites.add(place);
-            }
         } else {
             viewHolder.ivPlaceStar.setImageResource(R.drawable.star_blank);
-            if (favorites.contains(place)) {
-                favorites.remove(place);
-            }
         }
 
         viewHolder.ivPlaceStar.setClickable(true);
         viewHolder.ivPlaceStar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (favorites.contains(place)) {
-                    favorites.remove(place);
+                if (place.isFavorite()){ //favorites.contains(place)) {
+                    //favorites.remove(place);
                     place.setFavorite(false);
                     ivhf.setImageResource(R.drawable.star_blank);
                 } else {
-                    favorites.add(place);
+                    //favorites.add(place);
                     place.setFavorite(true);
                     ivhf.setImageResource(R.drawable.star_filled);
                 }
@@ -143,8 +131,7 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
         });
 
         // TODO when changing context send back proper info
-        final String placeId = place.getId();
-        final String placeName = place.getName();
+        final String placeName = dataSet.get(position).getName();
         viewHolder.btnPlaceSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,9 +144,14 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
                         "Yes",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+//                                Intent intent = new Intent(context, ViewTourActivity.class);
+//                                //TODO IMPORTANT Add more intent extras here and go back properly
+//                                intent.putExtra("HOTEL_NAME", placeName);
+//                                context.startActivity(intent);
+
                                 Intent intent = new Intent(context, ViewTourActivity.class);
                                 intent.putExtra(ActivityHelper.REFRESH_MODE, REQUEST_MODE);
-                                intent.putExtra(ActivityHelper.NEW_PLACE_ID, placeId);
+                                intent.putExtra(ActivityHelper.NEW_PLACE_ID, place.getId());
                                 intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
                                 intent.putExtra(ActivityHelper.TOUR_ID, tourId);
                                 intent.putExtra(ActivityHelper.START_TIME, strStartTime);
@@ -167,6 +159,11 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
 
                                 context.startActivity(intent);
                                 context.finish();
+
+
+                                //context.finish();
+
+                                //dialog.cancel();
                             }
                         });
 
@@ -211,5 +208,4 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
             btnPlaceSelect = v.findViewById(R.id.btnPlaceSelect);
         }
     }
-
 }
