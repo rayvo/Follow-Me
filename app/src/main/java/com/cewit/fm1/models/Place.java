@@ -23,7 +23,6 @@ public class Place implements Serializable {
     private String openTime;
     private String closeTime;
     private int entranceFee;
-    private List<Integer> imageIds;
     private String type;
     private boolean isFavorite;
 
@@ -36,7 +35,7 @@ public class Place implements Serializable {
         this.accType = "";
     }
 
-    public Place(String id, String name, String address, String cityId, String contact, String site, String info, String email, long lat, long lng, int rate, String openTime, String closeTime, int entranceFee, List<Integer> imageIds, String type, boolean isFavorite) {
+    public Place(String id, String name, String address, String cityId, String contact, String site, String info, String email, long lat, long lng, int rate, String openTime, String closeTime, int entranceFee, String type, boolean isFavorite, String specificType) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -51,11 +50,10 @@ public class Place implements Serializable {
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.entranceFee = entranceFee;
-        this.imageIds = imageIds;
         this.type = type;
         this.isFavorite = isFavorite;
-        this.resType = "";
-        this.accType = "";
+        this.resType = specificType;
+        this.accType = specificType;
     }
 
     public String getId() {
@@ -168,14 +166,6 @@ public class Place implements Serializable {
 
     public void setEntranceFee(int entranceFee) {
         this.entranceFee = entranceFee;
-    }
-
-    public List<Integer> getImageIds() {
-        return imageIds;
-    }
-
-    public void setImageIds(List<Integer> imageIds) {
-        this.imageIds = imageIds;
     }
 
     public String getType() {

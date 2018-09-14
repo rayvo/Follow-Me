@@ -13,9 +13,9 @@ public class Accommodation extends Place {
     public Accommodation() {
     }
 
-    public Accommodation(String id, String name, String address, String cityId, String contact, String site, String info, String email, long lat, long lng, int rate, String openTime, String closeTime, int entranceFee, List<Integer> imageIds, String type,  boolean isFavorite, String accType) {
-        super(id, name, address, cityId, contact, site, info, email, lat, lng, rate, openTime, closeTime, entranceFee, imageIds, type, isFavorite);
-        this.accType = accType;
+    public Accommodation(String id, String name, String address, String cityId, String contact, String site, String info, String email, long lat, long lng, int rate, String openTime, String closeTime, int entranceFee, String type,  boolean isFavorite, String accType) {
+        super(id, name, address, cityId, contact, site, info, email, lat, lng, rate, openTime, closeTime, entranceFee, type, isFavorite, accType);
+                this.accType = accType;
     }
 
     public String getAccType() {

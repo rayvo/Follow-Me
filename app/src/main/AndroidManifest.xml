@@ -30,6 +30,7 @@
         <activity android:name=".PlaceSelectionActivity" />
         <activity android:name=".AccommodationListActivity"/>
         <activity android:name=".RestaurantListActivity"/>
+        <activity android:name=".ViewPlaceActivity"/>
     </application>
 
 </manifest>

@@ -2,6 +2,7 @@ package com.cewit.fm1;
 
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -18,10 +19,15 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListPopupWindow;
 import android.widget.PopupMenu;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -30,12 +36,14 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.cewit.fm1.models.Place;
+import com.cewit.fm1.models.PlaceMenuItem;
 import com.cewit.fm1.models.Tour;
 import com.cewit.fm1.models.Transport;
 import com.cewit.fm1.models.Travel;
 import com.cewit.fm1.util.ActivityHelper;
 import com.cewit.fm1.util.ContentView;
 import com.cewit.fm1.util.CostView;
+import com.cewit.fm1.util.ListPopupMenuAdapter;
 import com.cewit.fm1.util.MovingView;
 import com.cewit.fm1.util.PlaceView;
 import com.cewit.fm1.util.TransportView;
@@ -484,7 +492,6 @@ public class ViewTourActivity extends AppCompatActivity {
         placeViewHash = new HashMap<String, List<PlaceView>>();
 
 
-
         travels = new ArrayList<Travel>();
         totalRequiredTravels = allPlaces.size() - 1 - (days.size() - 1);
 
@@ -541,13 +548,23 @@ public class ViewTourActivity extends AppCompatActivity {
         Log.d(TAG, "PlaceView(): started");
         PlaceView view = new PlaceView(this.getApplicationContext());
         if (place != null) {
+            final String placeId = place.getId();
             String strName = place.getName();
             view.setPlace(place);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     PlaceView myView = (PlaceView) v;
-                    showPopupMenuPlace(myView);
+
+                    Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), ViewPlaceActivity.class);
+                    intent.putExtra(ActivityHelper.PLACE_ID, placeId);
+                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
+                    intent.putExtra(ActivityHelper.START_TIME, strStartTime);
+                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
+                    startActivity(intent);
+                    finish();
+
+                    //showPopupMenuPlace(myView);
                 }
             });
 
@@ -603,13 +620,13 @@ public class ViewTourActivity extends AppCompatActivity {
             List<TransportView> transportViews = new ArrayList<TransportView>();
 
             List<MovingView> mvTimeViews = new ArrayList<MovingView>();
-            List<MovingView>  mvPlaceViews = new ArrayList<MovingView>();
+            List<MovingView> mvPlaceViews = new ArrayList<MovingView>();
             List<ContentView> contentViews = new ArrayList<ContentView>();
             List<CostView> costViews = new ArrayList<CostView>();
 
             for (int p = 0; p < placeIds.size() - 1; p++) {
                 Place place = getPlace(placeIds.get(p));
-                Place nextPlace = getPlace(placeIds.get(p+1));
+                Place nextPlace = getPlace(placeIds.get(p + 1));
 
                 String travelId = placeIds.get(p) + "_" + placeIds.get(p + 1);
                 curPlaceId = placeIds.get(p);
@@ -846,7 +863,6 @@ public class ViewTourActivity extends AppCompatActivity {
         adapter.addFrag(diagramFragment, "DIAGRAM VIEW");
 
 
-
         Fragment summaryFragment = TourSummaryFragment.newInstance(ViewTourActivity.this, mvTimeViewHash, mvPlaceViewHash, contentViewHash, costViewHash);
         Bundle bundle2 = new Bundle();
         bundle2.putStringArray("DAY_SUMMARY", daySummaries);
@@ -892,25 +908,113 @@ public class ViewTourActivity extends AppCompatActivity {
     private Place curPlace;
 
     private void showPopupMenuPlace(PlaceView v) {
+        final ListPopupWindow popupWindow = new ListPopupWindow(this);
+        List<PlaceMenuItem> itemList = new ArrayList<>();
+        curPlace = v.getPlace();
+        curPlaceId = curPlace.getId();
+        final String strSite = curPlace.getSite();
+
+        PlaceMenuItem placeMenuItem = new PlaceMenuItem(curPlace.getName());
+        placeMenuItem.setId(curPlace.getId());
+        placeMenuItem.setAddress(curPlace.getAddress());
+        placeMenuItem.setNumber(curPlace.getContact());
+        placeMenuItem.setType(curPlace.getType());
+
+        itemList.add(placeMenuItem);
+
+        ListAdapter adapter = new ListPopupMenuAdapter(this, itemList);
+        popupWindow.setAnchorView(v);
+        popupWindow.setAdapter(adapter);
+        popupWindow.setContentWidth(measureContentWidth(adapter));
+        popupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (i == 0) {
+                    if (strSite != null && strSite.length() > 0) {
+                        Uri uri = Uri.parse(strSite);
+                        Intent intent = new Intent();
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setData(uri);
+                        if (intent.resolveActivity(getPackageManager()) != null) {
+                            startActivity(intent);
+                        }
+
+                        //startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                    }
+                }
+                popupWindow.dismiss();
+            }
+        });
+        popupWindow.show();
+
+    }
+
+    private int measureContentWidth(ListAdapter mAdapter) {
+        ViewGroup mMeasureParent = null;
+        int maxWidth = 0;
+        View itemView = null;
+        int itemType = 0;
+
+        final ListAdapter adapter = mAdapter;
+        final int widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        final int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        final int count = adapter.getCount();
+        for (int i = 0; i < count; i++) {
+            final int positionType = adapter.getItemViewType(i);
+            if (positionType != itemType) {
+                itemType = positionType;
+                itemView = null;
+            }
+
+            if (mMeasureParent == null) {
+                mMeasureParent = new FrameLayout(this);
+            }
+
+            itemView = adapter.getView(i, itemView, mMeasureParent);
+            itemView.measure(widthMeasureSpec, heightMeasureSpec);
+
+            final int itemWidth = itemView.getMeasuredWidth();
+
+            if (itemWidth > maxWidth) {
+                maxWidth = itemWidth;
+            }
+        }
+
+        return maxWidth;
+    }
+
+/*
+
+
+
         PopupMenu menu = new PopupMenu(this, v);
+
         curPlace = v.getPlace();
         curPlaceId = curPlace.getId();
 
-
-        final String strSite = curPlace.getSite();
         menu.getMenu().add(curPlace.getName());
+        final String strSite = curPlace.getSite();
+
         menu.getMenu().getItem(0).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                ViewTourActivity.this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(strSite)));
-                return true;
+                Log.d(TAG, "904-Site:" + strSite);
+                if (strSite != null && strSite.length() > 0) {
+                    Uri uri = Uri.parse(strSite);
+                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                    return true;
+                } else {
+                    return false;
+                }
             }
         });
+
 
         menu.getMenu().add(curPlace.getInfo());
         menu.getMenu().add(curPlace.getAddress());
         menu.getMenu().add(curPlace.getContact());
         menu.getMenu().add("Rate: " + curPlace.getRate());
+        menu.getMenu().add("Type: " + curPlace.getType());
         menu.getMenu().add("Change");
         menu.getMenu().add("Skip");
 
@@ -919,8 +1023,8 @@ public class ViewTourActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(
                         ViewTourActivity.this.getApplicationContext(),
-                        "You Clicked : " + item.getTitle(),
-                        Toast.LENGTH_SHORT
+                        item.getTitle(),
+                        Toast.LENGTH_LONG
                 ).show();
 
                 if (item.getTitle().equals("Skip")) {
@@ -998,7 +1102,8 @@ public class ViewTourActivity extends AppCompatActivity {
         });
 
         menu.show();
-    }
+
+    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -1140,7 +1245,7 @@ public class ViewTourActivity extends AppCompatActivity {
     }
 
     private MovingView getMovingView(String strFrom, String strTo, String strContent) {
-        Log.d(TAG,"getMovingView(): started");
+        Log.d(TAG, "getMovingView(): started");
 
         MovingView view = new MovingView(this);
 
@@ -1154,7 +1259,7 @@ public class ViewTourActivity extends AppCompatActivity {
         view.getTvTo().setTextSize(15);
 
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableLayout.LayoutParams.WRAP_CONTENT, TableLayout.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(0,0,0,0);
+        layoutParams.setMargins(0, 0, 0, 0);
         view.getTvFrom().setLayoutParams(layoutParams);
         view.getTvFrom().setGravity(Gravity.LEFT);
 

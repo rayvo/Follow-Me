@@ -44,7 +44,11 @@ public class ChangePlaceCustomListView extends ArrayAdapter<Place> {
             viewHolder = (ViewHolder) r.getTag(); //get the store view
         }
         Place place = dataSet.get(position);
-        if (place.getImageIds() != null && place.getImageIds().size() > 0) viewHolder.ivPlaceImage.setImageResource(place.getImageIds().get(0)); //First photo
+        int imageId = R.mipmap.ic_launcher;
+        if (context.getResources().getIdentifier(place.getId(), "drawable", context.getPackageName()) != 0) {
+            imageId =context.getResources().getIdentifier(place.getId(), "drawable", context.getPackageName());
+        }
+        viewHolder.ivPlaceImage.setImageResource(imageId); //First photo
         viewHolder.tvPlaceName.setText(place.getName());
         viewHolder.tvPlaceInfo.setText(place.getInfo());
         String placeSummary = "Contact: " + place.getContact() + "\nRate: " + place.getRate()
