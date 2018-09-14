@@ -19,7 +19,7 @@ import java.io.Serializable;
  * qvo@cs.stonybrook.edu
  */
 
-public class PlaceView extends LinearLayout{
+public class PlaceView extends LinearLayout implements Serializable{
 
     private Place place;
     private  TextView tvName;

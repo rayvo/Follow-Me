@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,8 +20,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -30,6 +34,9 @@ import com.cewit.fm1.models.Tour;
 import com.cewit.fm1.models.Transport;
 import com.cewit.fm1.models.Travel;
 import com.cewit.fm1.util.ActivityHelper;
+import com.cewit.fm1.util.ContentView;
+import com.cewit.fm1.util.CostView;
+import com.cewit.fm1.util.MovingView;
 import com.cewit.fm1.util.PlaceView;
 import com.cewit.fm1.util.TransportView;
 import com.cewit.fm1.util.Utility;
@@ -73,6 +80,12 @@ public class ViewTourActivity extends AppCompatActivity {
     private HashMap<String, List<String>> days;
     private HashMap<String, List<PlaceView>> placeViewHash;
     private HashMap<String, List<TransportView>> transportViewHash;
+
+
+    private HashMap<String, List<MovingView>> mvTimeViewHash;
+    private HashMap<String, List<MovingView>> mvPlaceViewHash;
+    private HashMap<String, List<ContentView>> contentViewHash;
+    private HashMap<String, List<CostView>> costViewHash;
     private String strStartTime;
     private HashMap<String, List<Integer>> times;
 
@@ -101,15 +114,18 @@ public class ViewTourActivity extends AppCompatActivity {
     private TextView tvTourSummary;
     private int totalDistance = 0;
     private int totalTime = 0;
+    private int totalCost = 0;
+
     private int distancePerDay = 0;
     private int timePerDay = 0;
+    private int costPerDay = 0;
 
     private int transType = 0;
     private String previousArrivalTime;
     private String[] daySummaries;
     private String strSkippedPlaceId;
-    private String transportChangedAtPlaceId ="";
-    private String selectedTransport ="";
+    private String transportChangedAtPlaceId = "";
+    private String selectedTransport = "";
 
     private void addTabs(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
@@ -295,16 +311,15 @@ public class ViewTourActivity extends AppCompatActivity {
         });
 
 
-
     }
 
 
     private void createViewHash(Tour tour) {
-    tvTourInfo.setText(tour.getInfo());
-    tvTourSummary.setText("");
-    days = tour.getDays();
+        tvTourInfo.setText(tour.getInfo());
+        tvTourSummary.setText("");
+        days = tour.getDays();
         times = tour.getTimes();
-    daySummaries = new String[days.size()];
+        daySummaries = new String[days.size()];
         //Check if this is a skip refresh
         if (isSkipRefresh) {
             updateData(ActivityHelper.REFRESH_SKIP);
@@ -371,19 +386,19 @@ public class ViewTourActivity extends AppCompatActivity {
         switch (updateMode) {
             case ActivityHelper.REFRESH_SKIP:
 
-                    for (int i = 0; i < days.size(); i++) { //check each day
-                        List<String> placeIds = days.get(strDay + (i + 1));
-                        for (int j = 0; j < placeIds.size(); j++) {
-                            if (placeIds.get(j).equals(strSkippedPlaceId)) {
-                                days.get(strDay + (i + 1)).remove(j);
-                                //tour.getDays().get(strDay + (i + 1)).remove(j);
-                                times.get(strDay + (i + 1)).remove(j);
-                                //tour.getTimes().get(strDay + (i + 1)).remove(j);
+                for (int i = 0; i < days.size(); i++) { //check each day
+                    List<String> placeIds = days.get(strDay + (i + 1));
+                    for (int j = 0; j < placeIds.size(); j++) {
+                        if (placeIds.get(j).equals(strSkippedPlaceId)) {
+                            days.get(strDay + (i + 1)).remove(j);
+                            //tour.getDays().get(strDay + (i + 1)).remove(j);
+                            times.get(strDay + (i + 1)).remove(j);
+                            //tour.getTimes().get(strDay + (i + 1)).remove(j);
 
-                            }
                         }
-
                     }
+
+                }
 
 
                 //Update database
@@ -465,8 +480,11 @@ public class ViewTourActivity extends AppCompatActivity {
     private int totalRequiredTravels;
 
     private void createViews() {
-        Log.d(TAG,"createViews(): started");
+        Log.d(TAG, "createViews(): started");
         placeViewHash = new HashMap<String, List<PlaceView>>();
+
+
+
         travels = new ArrayList<Travel>();
         totalRequiredTravels = allPlaces.size() - 1 - (days.size() - 1);
 
@@ -482,9 +500,13 @@ public class ViewTourActivity extends AppCompatActivity {
                 PlaceView placeView = getPlaceView(place);
                 placeViews.add(placeView);
 
+                //For Summary
+
+
                 //For Transport used later
                 if (p < placeIds.size() - 1) {
                     nextPlace = getPlace(placeIds.get(p + 1));
+
                     String travelId = place.getId() + "_" + nextPlace.getId();
                     DatabaseReference refPlaces = FirebaseDatabase.getInstance().getReference("travels");
                     refPlaces.orderByChild("id").equalTo(travelId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -516,7 +538,7 @@ public class ViewTourActivity extends AppCompatActivity {
     }
 
     private PlaceView getPlaceView(Place place) {
-        Log.d(TAG,"PlaceView(): started");
+        Log.d(TAG, "PlaceView(): started");
         PlaceView view = new PlaceView(this.getApplicationContext());
         if (place != null) {
             String strName = place.getName();
@@ -551,9 +573,15 @@ public class ViewTourActivity extends AppCompatActivity {
     private List<Integer> placeTimes;
 
     private void createTransportView() {
-        Log.d(TAG,"createTransportView(): started");
+        Log.d(TAG, "createTransportView(): started");
 
         transportViewHash = new HashMap<String, List<TransportView>>();
+
+        //For summary fragment
+        mvTimeViewHash = new HashMap<String, List<MovingView>>();
+        mvPlaceViewHash = new HashMap<String, List<MovingView>>();
+        contentViewHash = new HashMap<String, List<ContentView>>();
+        costViewHash = new HashMap<String, List<CostView>>();
 
         //Check if this is a refresh of changing departure time
         if (isTimeChanged) {
@@ -564,19 +592,28 @@ public class ViewTourActivity extends AppCompatActivity {
         for (int d = 0; d < days.size(); d++) { //check each day
             distancePerDay = 0;
             timePerDay = 0;
+            costPerDay = 0;
 
             List<String> placeIds = days.get(strDay + (d + 1));
             placeTimes = times.get(strDay + (d + 1));
             int transportIndex = 0;
             String mDepartureTime = strStartTime;
             previousArrivalTime = strStartTime;
+
             List<TransportView> transportViews = new ArrayList<TransportView>();
+
+            List<MovingView> mvTimeViews = new ArrayList<MovingView>();
+            List<MovingView>  mvPlaceViews = new ArrayList<MovingView>();
+            List<ContentView> contentViews = new ArrayList<ContentView>();
+            List<CostView> costViews = new ArrayList<CostView>();
+
             for (int p = 0; p < placeIds.size() - 1; p++) {
+                Place place = getPlace(placeIds.get(p));
+                Place nextPlace = getPlace(placeIds.get(p+1));
+
                 String travelId = placeIds.get(p) + "_" + placeIds.get(p + 1);
                 curPlaceId = placeIds.get(p);
                 Travel travel = getTravel(travelId);
-
-
 
 
                 //Select transport type
@@ -607,7 +644,7 @@ public class ViewTourActivity extends AppCompatActivity {
 
                 if (isSpecificTransportChanged) {
                     if (curPlaceId.equals(transportChangedAtPlaceId)) {
-                        if (selectedTransport.equals(ActivityHelper.REFRESH_BUS_SELECTED)){
+                        if (selectedTransport.equals(ActivityHelper.REFRESH_BUS_SELECTED)) {
                             isCar = false;
                         } else {
                             isCar = true;
@@ -637,11 +674,20 @@ public class ViewTourActivity extends AppCompatActivity {
                 Log.d(TAG, "distancePerDay: " + distancePerDay);
 
                 distancePerDay = distancePerDay + transport.getDistance();
-                Log.d(TAG,"transport.getDistance()"  + transport.getDistance());
+                Log.d(TAG, "transport.getDistance()" + transport.getDistance());
                 Log.d(TAG, "distancePerDay: " + distancePerDay);
                 timePerDay = timePerDay + transTime;
 
+
+                MovingView mvTimeView = getMovingView(mDepartureTime, strArrivalTime, "(" + Utility.formatTime(transport.getTime()) + ")");
+                MovingView mvPlaceView = getMovingView(place.getName(), nextPlace.getName(), "(" + Utility.formatDistance(transport.getDistance()) + ")");
+                ContentView contentView = new ContentView(this, transport.getType());
+                CostView costView = new CostView(this, transport.getCost() + "");
+
+                costPerDay = costPerDay + transport.getCost();
+
                 int direction = computeDirection(transportIndex);
+
                 TransportView transportView = new TransportView(this, travel, direction, mDepartureTime, strArrivalTime, info, isCar);
                 transportView.getTvFrom().setTag(new String(d + ":" + p + ":" + placeTimes.get(p)));
 
@@ -769,15 +815,26 @@ public class ViewTourActivity extends AppCompatActivity {
                 previousArrivalTime = strArrivalTime;
                 transportViews.add(transportView);
                 transportIndex++;
+
+                mvTimeViews.add(mvTimeView);
+                mvPlaceViews.add(mvPlaceView);
+                contentViews.add(contentView);
+                costViews.add(costView);
             }
             transportViewHash.put(strDay + (d + 1), transportViews);
+            mvTimeViewHash.put(strDay + (d + 1), mvTimeViews);
+            mvPlaceViewHash.put(strDay + (d + 1), mvPlaceViews);
+            contentViewHash.put(strDay + (d + 1), contentViews);
+            costViewHash.put(strDay + (d + 1), costViews);
+
             totalDistance = totalDistance + distancePerDay;
             totalTime = totalTime + timePerDay;
+            totalCost = totalCost + costPerDay;
 
-            daySummaries[d] = Utility.formatDistance(distancePerDay) + "/" + Utility.formatTime(timePerDay);
+            daySummaries[d] = Utility.formatDistance(distancePerDay) + "/" + Utility.formatTime(timePerDay) + "/약" + Utility.formatCost(costPerDay);
         }
 
-        tvTourSummary.setText(Utility.formatDistance(totalDistance) + "/" + Utility.formatTime(totalTime));
+        tvTourSummary.setText(Utility.formatDistance(totalDistance) + "/" + Utility.formatTime(totalTime) + "/약" + Utility.formatCost(totalCost));
 
         Fragment diagramFragment = TourDiagramFragment.newInstance(ViewTourActivity.this, placeViewHash, transportViewHash);
         Bundle bundle1 = new Bundle();
@@ -788,10 +845,16 @@ public class ViewTourActivity extends AppCompatActivity {
         diagramFragment.setArguments(bundle1);
         adapter.addFrag(diagramFragment, "DIAGRAM VIEW");
 
-        Fragment summaryFragment = TourSummaryFragment.newInstance(ViewTourActivity.this, tour);
+
+
+        Fragment summaryFragment = TourSummaryFragment.newInstance(ViewTourActivity.this, mvTimeViewHash, mvPlaceViewHash, contentViewHash, costViewHash);
         Bundle bundle2 = new Bundle();
-        bundle2.putSerializable("TOUR", tour);
-        bundle2.putString("id", tour.getId());
+        bundle2.putStringArray("DAY_SUMMARY", daySummaries);
+        bundle2.putSerializable("MV_TIME_VIEW_HASH", mvTimeViewHash);
+        bundle2.putSerializable("MV_PLACE_VIEW_HASH", mvPlaceViewHash);
+        bundle2.putSerializable("CONTENT_VIEW_HASH", contentViewHash);
+        bundle2.putSerializable("COST_VIEW_HASH", costViewHash);
+
         bundle2.putInt("prefer_transport", preferTransportType);
 
         summaryFragment.setArguments(bundle2);
@@ -1006,7 +1069,7 @@ public class ViewTourActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialog, int id) {
                                     Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), ViewTourActivity.class);
                                     intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_SPECIFIC_TRANSPORT_CHANGED);
-                                    if (transportType.contains("Bus") ) {
+                                    if (transportType.contains("Bus")) {
                                         intent.putExtra(ActivityHelper.TRANSPORT_CHANGED_TYPE, ActivityHelper.REFRESH_BUS_SELECTED);
 
                                     } else {
@@ -1068,15 +1131,42 @@ public class ViewTourActivity extends AppCompatActivity {
                     alert11.show();
 
 
-
-
-
                 }
                 return true;
             }
         });
 
         menu.show();
+    }
+
+    private MovingView getMovingView(String strFrom, String strTo, String strContent) {
+        Log.d(TAG,"getMovingView(): started");
+
+        MovingView view = new MovingView(this);
+
+        view.getTvFrom().setText(strFrom);
+        view.getTvFrom().setTextSize(15);
+
+        view.getTvContent().setText(strContent);
+        view.getTvContent().setTextSize(15);
+
+        view.getTvTo().setText(strTo);
+        view.getTvTo().setTextSize(15);
+
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(TableLayout.LayoutParams.WRAP_CONTENT, TableLayout.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(0,0,0,0);
+        view.getTvFrom().setLayoutParams(layoutParams);
+        view.getTvFrom().setGravity(Gravity.LEFT);
+
+        view.getTvContent().setLayoutParams(layoutParams);
+        view.getTvContent().setGravity(Gravity.LEFT);
+
+        view.getTvTo().setLayoutParams(layoutParams);
+        view.getTvTo().setGravity(Gravity.LEFT);
+
+        view.setGravity(Gravity.LEFT);
+        view.setLayoutParams(layoutParams);
+        return view;
     }
 
 
