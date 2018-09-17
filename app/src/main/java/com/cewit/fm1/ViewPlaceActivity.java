@@ -39,6 +39,7 @@ public class ViewPlaceActivity extends AppCompatActivity {
 
     private TextView tvTitle;
     private TextView tvAddress;
+    private TextView tvInfo;
     private TextView tvNumber;
     private TextView tvType;
     private ImageView ivImage;
@@ -62,6 +63,7 @@ public class ViewPlaceActivity extends AppCompatActivity {
         startTime = intent.getStringExtra(ActivityHelper.START_TIME);
 
         tvTitle = findViewById(R.id.tvName);
+        tvInfo = findViewById(R.id.tvInfo);
         tvAddress = findViewById(R.id.tvAddress);
         tvNumber = findViewById(R.id.tvNumber);
         tvType = findViewById(R.id.tvType);
@@ -80,6 +82,7 @@ public class ViewPlaceActivity extends AppCompatActivity {
                      place = tourSnapshot.getValue(Place.class);
                     if (place != null) {
                         tvTitle.setText(place.getName());
+                        //tvInfo.setText(place.getInfo());
                         ivImage.setImageResource(R.drawable.jeju000);
 
                         int imageId = R.mipmap.ic_launcher;
