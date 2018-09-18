@@ -130,7 +130,6 @@ public class PlaceSelectionActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String selectedItem = spnGu.getSelectedItem().toString();
-//                System.out.println("------------------------------------------------------------------------------------------------: " + curPlaceId);
                 if(selectedItem.toUpperCase().equals("RESTAURANT")) {
                     setAdapter(2);
                 }
@@ -208,7 +207,6 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                         temp.add(places.get(i));
                     }
                 }
-//                System.out.println("----------------------------------------------------------------------------------------------------: view all");
                 customListView = new PlaceCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId, strStartTime); //hotelStarredList,
             } else if( t.equals("View All") ){
                 if(s.equals("Restaurant") || s.equals("Accommodation")){
@@ -217,7 +215,6 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                             temp.add(places.get(i));
                         }
                     }
-//                    System.out.println("----------------------------------------------------------------------------------------------------: restaurant or accomodation");
                 }
                 else if(s.equals("Tourism")){
                    for(int i = 0; i < places.size(); i++){
@@ -225,7 +222,6 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                            temp.add(places.get(i));
                        }
                    }
-//                    System.out.println("----------------------------------------------------------------------------------------------------: tourism");
                 }
                 customListView = new PlaceCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId , strStartTime); //hotelStarredList,
             } else {
@@ -308,10 +304,6 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                 customListView = new PlaceCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId , strStartTime);// hotelStarredList,
             }
         }
-
-//        System.out.println(customListView.get)
-        System.out.println("----------------------------------------------------------------------------------------------------: seting listAdapter " + places.size() + " " + temp.size());
-//        customListView.notifyDataSetChanged();
         list.setAdapter(customListView);
 
     }
