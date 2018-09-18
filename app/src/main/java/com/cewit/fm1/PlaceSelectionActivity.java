@@ -79,9 +79,9 @@ public class PlaceSelectionActivity extends AppCompatActivity {
         sGPS = findViewById(R.id.sGPS);
 
 
-        // Set list adapter
-//        customListView = new PlaceCustomListView(this, places,  sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId, strStartTime);
-//        list.setAdapter(customListView);
+
+        customListView = new PlaceCustomListView(this, places,  sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId, strStartTime);
+        list.setAdapter(customListView);
 
         // Set spnGu adapter
         // TODO Properly set spnGu data elsewhere instead of manually inputting it
@@ -183,29 +183,20 @@ public class PlaceSelectionActivity extends AppCompatActivity {
 
         readPlaceData();
 
-        //filterCurrentList(false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked());
         if(curPlaceId.charAt(0) == 'r'){
             spnGu.setSelection(3);
             setAdapter(2);
-            filterCurrentList(false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked());
-
         } else if (curPlaceId.charAt(0)=='h') {
             spnGu.setSelection(1);
             setAdapter(0);
-            filterCurrentList(false, spnGu.getSelectedItem().toString(), spnType.getSelectedItem().toString(), sGPS.isChecked());
         }else{
             spnGu.setSelection(2);
             setAdapter(1);
-            String selectedItem = spnGu.getSelectedItem().toString();
-            System.out.println("----------------------------------------------------------------------------------: " + selectedItem);
-            filterCurrentList(false, selectedItem, spnType.getSelectedItem().toString(), sGPS.isChecked());
         }
 
     }
 
     public void filterCurrentList(boolean fav, String s, String t, boolean isChecked ){
-
-//        PlaceCustomListView customListView = null;
         List<Place> temp = new ArrayList<>();
 
         if( !fav ){
@@ -217,6 +208,7 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                         temp.add(places.get(i));
                     }
                 }
+//                System.out.println("----------------------------------------------------------------------------------------------------: view all");
                 customListView = new PlaceCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId, strStartTime); //hotelStarredList,
             } else if( t.equals("View All") ){
                 if(s.equals("Restaurant") || s.equals("Accommodation")){
@@ -225,6 +217,7 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                             temp.add(places.get(i));
                         }
                     }
+//                    System.out.println("----------------------------------------------------------------------------------------------------: restaurant or accomodation");
                 }
                 else if(s.equals("Tourism")){
                    for(int i = 0; i < places.size(); i++){
@@ -232,6 +225,7 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                            temp.add(places.get(i));
                        }
                    }
+//                    System.out.println("----------------------------------------------------------------------------------------------------: tourism");
                 }
                 customListView = new PlaceCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId , strStartTime); //hotelStarredList,
             } else {
@@ -316,7 +310,10 @@ public class PlaceSelectionActivity extends AppCompatActivity {
         }
 
 //        System.out.println(customListView.get)
+        System.out.println("----------------------------------------------------------------------------------------------------: seting listAdapter " + places.size() + " " + temp.size());
+//        customListView.notifyDataSetChanged();
         list.setAdapter(customListView);
+
     }
 
     private void setAdapter(int a){
@@ -351,8 +348,35 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                         places.add(forDB);
                     }
                 }
-                PlaceCustomListView customListView = new PlaceCustomListView(PlaceSelectionActivity.this, places, sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId, strStartTime );
-                list.setAdapter(customListView);
+                List<Place> temp = new ArrayList<>();
+                if(curPlaceId.charAt(0)=='r'){
+                    for(int i = 0; i < places.size(); i++){
+                        if(places.get(i).getType().toUpperCase().equals("RESTAURANT")){
+                            temp.add(places.get(i));
+                        }
+                    }
+                    PlaceCustomListView customListView = new PlaceCustomListView(PlaceSelectionActivity.this, temp, sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId, strStartTime );
+                    list.setAdapter(customListView);
+                }
+                else if(curPlaceId.charAt(0)=='h'){
+                    for(int i = 0; i < places.size(); i++){
+                        if(places.get(i).getType().toUpperCase().equals("ACCOMMODATION")){
+                            temp.add(places.get(i));
+                        }
+                    }
+                    PlaceCustomListView customListView = new PlaceCustomListView(PlaceSelectionActivity.this, temp, sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId, strStartTime );
+                    list.setAdapter(customListView);
+                }
+                else{
+                    for(int i = 0; i < places.size(); i++){
+                        if(!places.get(i).getType().toUpperCase().equals("ACCOMMODATION") && !places.get(i).getType().toUpperCase().equals("RESTAURANT")){
+                            temp.add(places.get(i));
+                        }
+                    }
+                    PlaceCustomListView customListView = new PlaceCustomListView(PlaceSelectionActivity.this, temp, sGPS.isChecked(), REQUEST_MODE, tourId, curPlaceId, strStartTime );
+                    list.setAdapter(customListView);
+                }
+
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {

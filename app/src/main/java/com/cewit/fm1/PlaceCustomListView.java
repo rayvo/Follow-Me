@@ -82,7 +82,7 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
             }
         });
 
-        viewHolder.tvPlaceAddress.setText(place.getAddress());
+
         viewHolder.tvPlaceNumber.setText(place.getContact());
 
         if(place.getType().equals("Restaurant")) {
@@ -96,23 +96,39 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
         }
 
         // TODO Properly set up gps and find distance
-        viewHolder.tvPlaceDistance.setText("XX km");
+        double tempLat = 37.375307;
+        double tempLng = 126.66802800000005;
+        double distance = distance(tempLat, tempLng, (double) place.getLat(), (double) place.getLng(), "K");
+        distance = (double)Math.round(distance);
+
+        viewHolder.tvPlaceDistance.setText(Double.toString(distance/1000) + "km");
         if(isGPSOn){
             viewHolder.tvPlaceDistance.setVisibility(View.VISIBLE);
         } else {
             viewHolder.tvPlaceDistance.setVisibility(View.INVISIBLE);
         }
 
+        final String hotelLng = Long.toString(place.getLng());
+        final String hotelLat = Long.toString(place.getLat());
+        final String hotelAdd = place.getAddress();
+        viewHolder.tvPlaceAddress.setText(place.getAddress());
+        viewHolder.tvPlaceAddress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri gMapUri = Uri.parse("geo:" + hotelLat + "," + hotelLng + "?q=" + hotelAdd);
+                Intent gMapIntent = new Intent(Intent.ACTION_VIEW, gMapUri);
+                gMapIntent.setPackage("com.google.android.apps.maps");
+                context.startActivity(gMapIntent);
+
+            }
+        });
+
         int placeId = context.getResources().getIdentifier(place.getId(), "drawable", context.getPackageName());
         viewHolder.ivPlaceImage.setImageResource(placeId);
         viewHolder.ivPlaceImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri gMapUri = Uri.parse("geo:" + place.getLat() + "," + place.getLng() + "?q=" + place.getLat() + "," + place.getLng() + "(" + place.getName() + ")");
-                Intent gMapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(String.valueOf(gMapUri)));
-                gMapIntent.setPackage("com.google.android.apps.maps");
-                context.startActivity(gMapIntent);
-
+                context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(strSite)));
             }
         });
 
@@ -198,6 +214,36 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
         return r;
     }
 
+    //unit is "k"
+    private static double distance(double lat1, double lon1, double lat2, double lon2, String unit) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+        if (unit == "K") {
+            dist = dist * 1.609344;
+            dist = dist * 1000;
+        } else if (unit == "N") {
+            dist = dist * 0.8684;
+        }
+
+        return (dist);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::	This function converts decimal degrees to radians						 :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::	This function converts radians to decimal degrees						 :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private static double rad2deg(double rad) {
+        return (rad * 180 / Math.PI);
+    }
 
     class ViewHolder {
         TextView tvPlaceName;

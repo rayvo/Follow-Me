@@ -162,13 +162,14 @@ public class ViewPlaceActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int id) {
                                 String placeType = place.getType();
                                 Intent intent;
-                                if (placeType.equalsIgnoreCase("Accommodation")) {
-                                    intent = new Intent(context, AccommodationListActivity.class);
-                                } else if (placeType.equalsIgnoreCase("Restaurant")) {
-                                    intent = new Intent(context, RestaurantListActivity.class);
-                                } else {
-                                    intent = new Intent(context, PlaceSelectionActivity.class);
-                                }
+//                                if (placeType.equalsIgnoreCase("Accommodation")) {
+//                                    intent = new Intent(context, AccommodationListActivity.class);
+//                                } else if (placeType.equalsIgnoreCase("Restaurant")) {
+//                                    intent = new Intent(context, RestaurantListActivity.class);
+//                                } else {
+//                                    intent = new Intent(context, PlaceSelectionActivity.class);
+//                                }
+                                intent = new Intent(context, PlaceSelectionActivity.class);
                                 intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_CHANGED);
                                 intent.putExtra(ActivityHelper.CITY_ID, cityId);
                                 intent.putExtra(ActivityHelper.TOUR_ID, tourId);
