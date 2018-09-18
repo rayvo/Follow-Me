@@ -81,7 +81,21 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
             }
         });
 
+        final String hotelLng = Long.toString(accom.getLng());
+        final String hotelLat = Long.toString(accom.getLat());
+        final String hotelAdd = accom.getAddress();
         viewHolder.tvAccomAddress.setText(accom.getAddress());
+        viewHolder.tvAccomAddress.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(strSite)));
+                Uri gMapUri = Uri.parse("geo:" + hotelLat + "," + hotelLng + "?q=" + hotelAdd);
+                Intent gMapIntent = new Intent(Intent.ACTION_VIEW, gMapUri);
+                gMapIntent.setPackage("com.google.android.apps.maps");
+                context.startActivity(gMapIntent);
+            }
+        });
+
         viewHolder.tvAccomNumber.setText(accom.getContact());
         viewHolder.tvAccomType.setText(accom.getAccType());
 
@@ -98,10 +112,7 @@ public class AccommodationCustomListView extends ArrayAdapter<Accommodation> {
         viewHolder.ivAccomImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Uri gMapUri = Uri.parse("geo:" + accom.getLat() + "," + accom.getLng() + "?q=" + accom.getLat() + "," + accom.getLng() + "(" + accom.getName() + ")");
-                Intent gMapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(String.valueOf(gMapUri)));
-                gMapIntent.setPackage("com.google.android.apps.maps");
-                context.startActivity(gMapIntent);
+                context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(strSite)));
 
             }
         });

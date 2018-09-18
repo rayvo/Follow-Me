@@ -26,6 +26,14 @@ public class Accommodation extends Place {
         this.accType = accType;
     }
 
+    public String getType(){
+        return super.getType();
+    }
+
+    public void setType(String s) {
+        super.setType(s);
+    }
+
     @Override
     public String toString() {
         return super.toString();

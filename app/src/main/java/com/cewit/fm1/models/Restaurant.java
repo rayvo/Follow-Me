@@ -14,6 +14,13 @@ public class Restaurant extends Place {
     }
 
 
+    public String getType(){
+        return super.getType();
+    }
+
+    public void setType(String s){
+        super.setType(s);
+    }
     public String toString(){
         return super.toString();
     }

@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.cewit.fm1.models.Accommodation;
 import com.cewit.fm1.models.Place;
@@ -83,7 +84,16 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
 
         viewHolder.tvPlaceAddress.setText(place.getAddress());
         viewHolder.tvPlaceNumber.setText(place.getContact());
-        viewHolder.tvPlaceType.setText(place.getType());
+
+        if(place.getType().equals("Restaurant")) {
+            viewHolder.tvPlaceType.setText(place.getResType());
+        }
+        else if(place.getType().equals("Accommodation")){
+            viewHolder.tvPlaceType.setText(place.getAccType());
+        }
+        else{
+            viewHolder.tvPlaceType.setText(place.getType());
+        }
 
         // TODO Properly set up gps and find distance
         viewHolder.tvPlaceDistance.setText("XX km");
@@ -122,10 +132,12 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
                     //favorites.remove(place);
                     place.setFavorite(false);
                     ivhf.setImageResource(R.drawable.star_blank);
+                    Toast.makeText(context, "Unstarred: " + place.getName(), Toast.LENGTH_SHORT).show();
                 } else {
                     //favorites.add(place);
                     place.setFavorite(true);
                     ivhf.setImageResource(R.drawable.star_filled);
+                    Toast.makeText(context, "Starred: " + place.getName(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
