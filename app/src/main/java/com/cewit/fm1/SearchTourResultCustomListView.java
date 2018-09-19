@@ -45,7 +45,8 @@ public class SearchTourResultCustomListView extends ArrayAdapter<Tour> {
         }
         Tour tour = dataSet.get(position);
         if(tour.getImageIds() != null && tour.getImageIds().size()>0) {
-            // viewHolder.ivTourImage.setImageResource(Integer.parseInt(tour.getImageIds().get(0))); //TODO will be checked later
+//             viewHolder.ivTourImage.setImageResource(Integer.parseInt(tour.getImageIds().get(0))); //TODO will be checked later
+            viewHolder.ivTourImage.setImageResource(R.drawable.jeju_island);
         }
         viewHolder.tvTourName.setText(tour.getName());
         viewHolder.tvTourDescription.setText(tour.getInfo());
