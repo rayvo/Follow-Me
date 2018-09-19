@@ -203,7 +203,7 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                 customListView = new PlaceCustomListView(this, places,  isChecked, REQUEST_MODE, tourId, curPlaceId , strStartTime);// hotelStarredList,
             } else if( s.equals("View All") ) {
                 for (int i = 0; i < places.size(); i++) {
-                    if (places.get(i).getType().equals(t)) {
+                    if (places.get(i).getType().equals(t) && !places.get(i).getId().equals(curPlaceId)) {
                         temp.add(places.get(i));
                     }
                 }
@@ -211,14 +211,14 @@ public class PlaceSelectionActivity extends AppCompatActivity {
             } else if( t.equals("View All") ){
                 if(s.equals("Restaurant") || s.equals("Accommodation")){
                     for(int i = 0; i < places.size(); i++){
-                        if(places.get(i).getType().toUpperCase().equals(s.toUpperCase()) ){
+                        if(places.get(i).getType().toUpperCase().equals(s.toUpperCase()) &&!places.get(i).getId().equals(curPlaceId)){
                             temp.add(places.get(i));
                         }
                     }
                 }
                 else if(s.equals("Tourism")){
                    for(int i = 0; i < places.size(); i++){
-                       if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation")){
+                       if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation") && !places.get(i).getId().equals(curPlaceId)){
                            temp.add(places.get(i));
                        }
                    }
@@ -227,21 +227,21 @@ public class PlaceSelectionActivity extends AppCompatActivity {
             } else {
                 if(s.equals("Restaurant")){
                     for(int i = 0; i < places.size(); i++) {
-                        if(places.get(i).getResType().equals(t)) {
+                        if(places.get(i).getResType().equals(t) && !places.get(i).getId().equals(curPlaceId)) {
                             temp.add(places.get(i));
                         }
                     }
                 }
                 else if(s.equals("Accommodation")){
                         for(int i = 0; i < places.size(); i++) {
-                            if(places.get(i).getAccType().equals(t)) {
+                            if(places.get(i).getAccType().equals(t) && !places.get(i).getId().equals(curPlaceId)) {
                                 temp.add(places.get(i));
                             }
                         }
                 }
                 else if(s.equals("Tourism")){
                     for(int i = 0; i < places.size(); i++) {
-                        if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation") && places.get(i).getType().equals(t)) {
+                        if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation") && places.get(i).getType().equals(t) && !places.get(i).getId().equals(curPlaceId)) {
                             temp.add(places.get(i));
                         }
                     }
@@ -251,29 +251,29 @@ public class PlaceSelectionActivity extends AppCompatActivity {
         } else {
             if( s.equals("View All") && t.equals("View All") ) {
                 for(int i = 0; i < places.size(); i++){
-                    if( places.get(i).isFavorite() ){
+                    if( places.get(i).isFavorite() && !places.get(i).getId().equals(curPlaceId)){
                         temp.add(places.get(i));
                     }
                 }
                 customListView = new PlaceCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId, strStartTime ); //hotelStarredList,
             } else if( s.equals("View All") ) {
                 for (int i = 0; i < places.size(); i++) {
-                    if (places.get(i).isFavorite() && places.get(i).getType().equals(t)) {
+                    if (places.get(i).isFavorite() && places.get(i).getType().equals(t) && !places.get(i).getId().equals(curPlaceId)) {
                         temp.add(places.get(i));
                     }
                 }
                 customListView = new PlaceCustomListView(this, temp, isChecked, REQUEST_MODE, tourId, curPlaceId, strStartTime ); //hotelStarredList,
             } else if( t.equals("View All") ){
-                if(s.equals("Restaurant") || s.equals("Accommodation")){
+                if(s.equals("Restaurant") || s.equals("Accommodation") ){
                     for(int i = 0; i < places.size(); i++){
-                        if(places.get(i).getType().toUpperCase().equals(s.toUpperCase()) && places.get(i).isFavorite()){
+                        if(places.get(i).getType().toUpperCase().equals(s.toUpperCase()) && places.get(i).isFavorite() && !places.get(i).getId().equals(curPlaceId)){
                             temp.add(places.get(i));
                         }
                     }
                 }
                 else if(s.equals("Tourism")){
                     for(int i = 0; i < places.size(); i++){
-                        if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation") && places.get(i).isFavorite()){
+                        if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation") && places.get(i).isFavorite() && !places.get(i).getId().equals(curPlaceId)){
                             temp.add(places.get(i));
                         }
                     }
@@ -282,21 +282,21 @@ public class PlaceSelectionActivity extends AppCompatActivity {
             } else {
                 if(s.equals("Restaurant")){
                     for(int i = 0; i < places.size(); i++) {
-                        if(places.get(i).getResType().equals(t) && places.get(i).isFavorite()) {
+                        if(places.get(i).getResType().equals(t) && places.get(i).isFavorite() && !places.get(i).getId().equals(curPlaceId)) {
                             temp.add(places.get(i));
                         }
                     }
                 }
                 else if(s.equals("Accommodation")){
                     for(int i = 0; i < places.size(); i++) {
-                        if(places.get(i).getAccType().equals(t) && places.get(i).isFavorite()) {
+                        if(places.get(i).getAccType().equals(t) && places.get(i).isFavorite() && !places.get(i).getId().equals(curPlaceId))  {
                             temp.add(places.get(i));
                         }
                     }
                 }
                 else if(s.equals("Tourism")){
                     for(int i = 0; i < places.size(); i++) {
-                        if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation") && places.get(i).getType().equals(t) && places.get(i).isFavorite()) {
+                        if(!places.get(i).getType().equals("Restaurant") && !places.get(i).getType().equals("Accommodation") && places.get(i).getType().equals(t) && places.get(i).isFavorite() && !places.get(i).getId().equals(curPlaceId)) {
                             temp.add(places.get(i));
                         }
                     }
@@ -343,7 +343,7 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                 List<Place> temp = new ArrayList<>();
                 if(curPlaceId.charAt(0)=='r'){
                     for(int i = 0; i < places.size(); i++){
-                        if(places.get(i).getType().toUpperCase().equals("RESTAURANT")){
+                        if(places.get(i).getType().toUpperCase().equals("RESTAURANT") && !places.get(i).getId().equals(curPlaceId)){
                             temp.add(places.get(i));
                         }
                     }
@@ -352,7 +352,7 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                 }
                 else if(curPlaceId.charAt(0)=='h'){
                     for(int i = 0; i < places.size(); i++){
-                        if(places.get(i).getType().toUpperCase().equals("ACCOMMODATION")){
+                        if(places.get(i).getType().toUpperCase().equals("ACCOMMODATION")&& !places.get(i).getId().equals(curPlaceId)){
                             temp.add(places.get(i));
                         }
                     }
@@ -361,7 +361,7 @@ public class PlaceSelectionActivity extends AppCompatActivity {
                 }
                 else{
                     for(int i = 0; i < places.size(); i++){
-                        if(!places.get(i).getType().toUpperCase().equals("ACCOMMODATION") && !places.get(i).getType().toUpperCase().equals("RESTAURANT")){
+                        if(!places.get(i).getType().toUpperCase().equals("ACCOMMODATION") && !places.get(i).getType().toUpperCase().equals("RESTAURANT") && !places.get(i).getId().equals(curPlaceId)){
                             temp.add(places.get(i));
                         }
                     }
