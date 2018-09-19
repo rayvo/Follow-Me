@@ -3,6 +3,7 @@ package com.cewit.fm1;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -82,17 +83,43 @@ public class ViewPlaceActivity extends AppCompatActivity {
                      place = tourSnapshot.getValue(Place.class);
                     if (place != null) {
                         tvTitle.setText(place.getName());
+                        tvTitle.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(place.getSite())));
+                            }
+                        });
                         //tvInfo.setText(place.getInfo());
-                        ivImage.setImageResource(R.drawable.jeju000);
 
+//                        ivImage.setImageResource(R.drawable.jeju000);
                         int imageId = R.mipmap.ic_launcher;
                         if (context.getResources().getIdentifier(place.getId(), "drawable", context.getPackageName()) != 0) {
                             imageId =context.getResources().getIdentifier(place.getId(), "drawable", context.getPackageName());
                         }
                         ivImage.setImageResource(imageId);
+                        ivImage.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(place.getSite())));
+                            }
+                        });
+
+                        final String hotelLng = Long.toString(place.getLng());
+                        final String hotelLat = Long.toString(place.getLat());
+                        final String hotelAdd = place.getAddress();
                         tvAddress.setText(place.getAddress());
+                        tvAddress.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Uri gMapUri = Uri.parse("geo:" + hotelLat + "," + hotelLng + "?q=" + hotelAdd);
+                                Intent gMapIntent = new Intent(Intent.ACTION_VIEW, gMapUri);
+                                gMapIntent.setPackage("com.google.android.apps.maps");
+                                context.startActivity(gMapIntent);
+                            }
+                        });
                         tvNumber.setText(place.getContact());
                         tvType.setText(place.getType());
+                        tvInfo.setText(place.getInfo());
                     }
                 }
             } //end data change of tour query

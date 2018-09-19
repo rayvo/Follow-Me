@@ -36,11 +36,11 @@
 
         <TextView
             android:id="@+id/tvAddress"
-            android:layout_width="match_parent"
+            android:layout_width="149dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
+            android:layout_above="@+id/tvNumber"
             android:layout_alignStart="@+id/ivImage"
-            android:layout_marginTop="208dp"
+            android:layout_marginBottom="-230dp"
             android:layout_weight="1"
             android:text="12345"
             android:textColor="#747474" />
@@ -68,6 +68,14 @@
             android:text="ZZZZ"
             android:textColor="#747474" />
 
+
+        <TextView
+            android:id="@+id/tvInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/tvName"
+            android:layout_below="@+id/tvType"
+            android:text="zzzzzzzzzzzzzzzzzzzzzzzzz" />
 
         <LinearLayout
             android:layout_width="match_parent"

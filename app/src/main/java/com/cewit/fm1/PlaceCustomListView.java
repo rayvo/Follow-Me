@@ -95,19 +95,6 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
             viewHolder.tvPlaceType.setText(place.getType());
         }
 
-        // TODO Properly set up gps and find distance
-        double tempLat = 37.375307;
-        double tempLng = 126.66802800000005;
-        double distance = distance(tempLat, tempLng, (double) place.getLat(), (double) place.getLng(), "K");
-        distance = (double)Math.round(distance);
-
-        viewHolder.tvPlaceDistance.setText(Double.toString(distance/1000) + "km");
-        if(isGPSOn){
-            viewHolder.tvPlaceDistance.setVisibility(View.VISIBLE);
-        } else {
-            viewHolder.tvPlaceDistance.setVisibility(View.INVISIBLE);
-        }
-
         final String hotelLng = Long.toString(place.getLng());
         final String hotelLat = Long.toString(place.getLat());
         final String hotelAdd = place.getAddress();
@@ -119,7 +106,6 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
                 Intent gMapIntent = new Intent(Intent.ACTION_VIEW, gMapUri);
                 gMapIntent.setPackage("com.google.android.apps.maps");
                 context.startActivity(gMapIntent);
-
             }
         });
 
@@ -172,26 +158,14 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
                         "Yes",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-//                                Intent intent = new Intent(context, ViewTourActivity.class);
-//                                //TODO IMPORTANT Add more intent extras here and go back properly
-//                                intent.putExtra("HOTEL_NAME", placeName);
-//                                context.startActivity(intent);
-
                                 Intent intent = new Intent(context, ViewTourActivity.class);
                                 intent.putExtra(ActivityHelper.REFRESH_MODE, REQUEST_MODE);
                                 intent.putExtra(ActivityHelper.NEW_PLACE_ID, place.getId());
                                 intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
                                 intent.putExtra(ActivityHelper.TOUR_ID, tourId);
                                 intent.putExtra(ActivityHelper.START_TIME, strStartTime);
-
-
                                 context.startActivity(intent);
                                 context.finish();
-
-
-                                //context.finish();
-
-                                //dialog.cancel();
                             }
                         });
 
@@ -205,11 +179,21 @@ public class PlaceCustomListView extends ArrayAdapter<Place> {
 
                 AlertDialog alert11 = builder1.create();
                 alert11.show();
-
-                //context.startActivity(new Intent(context, MainActivity.class)); //TODO will return to the view tour activity.
             }
         });
 
+        // TODO Properly set up gps and find distance
+        double tempLat = 37.375307;
+        double tempLng = 126.66802800000005;
+        double distance = distance(tempLat, tempLng, (double) place.getLat(), (double) place.getLng(), "K");
+        distance = (double)Math.round(distance);
+
+        viewHolder.tvPlaceDistance.setText(Double.toString(distance/1000) + "km");
+        if(isGPSOn){
+            viewHolder.tvPlaceDistance.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.tvPlaceDistance.setVisibility(View.INVISIBLE);
+        }
 
         return r;
     }
