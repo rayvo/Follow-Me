@@ -39,6 +39,7 @@ import com.cewit.fm1.models.Place;
 import com.cewit.fm1.models.PlaceMenuItem;
 import com.cewit.fm1.models.Tour;
 import com.cewit.fm1.models.Transport;
+import com.cewit.fm1.models.TransportChangedLog;
 import com.cewit.fm1.models.Travel;
 import com.cewit.fm1.util.ActivityHelper;
 import com.cewit.fm1.util.ContentView;
@@ -228,6 +229,7 @@ public class ViewTourActivity extends AppCompatActivity {
                 Log.d(TAG, "REFRESH_SPECIFIC_TRANSPORT_CHANGED");
                 transportChangedAtPlaceId = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
                 selectedTransport = intent.getStringExtra(ActivityHelper.TRANSPORT_CHANGED_TYPE);
+
                 isSpecificTransportChanged = true;
                 break;
             default: //New Activity
@@ -277,6 +279,7 @@ public class ViewTourActivity extends AppCompatActivity {
                 } else {
                     isBus = 0;
                 }
+
                 intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_TRANSPORT_CHANGED);
                 intent.putExtra(ActivityHelper.REFRESH_BUS_SELECTED, isBus);
                 restartActivity();
@@ -342,6 +345,8 @@ public class ViewTourActivity extends AppCompatActivity {
         if (isPlaceAdded) {
             updateData(ActivityHelper.REFRESH_PLACE_ADDED);
         }
+
+
 
         // TODO TBD later
 
@@ -836,7 +841,7 @@ public class ViewTourActivity extends AppCompatActivity {
                     transportView.getTvFrom().setClickable(true);
                 }
 
-                transportView.setTag(curPlaceId);
+                transportView.setTag(curPlaceId + ":" + isCar);
                 transportView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -1003,127 +1008,7 @@ public class ViewTourActivity extends AppCompatActivity {
         return maxWidth;
     }
 
-/*
 
-
-
-        PopupMenu menu = new PopupMenu(this, v);
-
-        curPlace = v.getPlace();
-        curPlaceId = curPlace.getId();
-
-        menu.getMenu().add(curPlace.getName());
-        final String strSite = curPlace.getSite();
-
-        menu.getMenu().getItem(0).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Log.d(TAG, "904-Site:" + strSite);
-                if (strSite != null && strSite.length() > 0) {
-                    Uri uri = Uri.parse(strSite);
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        });
-
-
-        menu.getMenu().add(curPlace.getInfo());
-        menu.getMenu().add(curPlace.getAddress());
-        menu.getMenu().add(curPlace.getContact());
-        menu.getMenu().add("Rate: " + curPlace.getRate());
-        menu.getMenu().add("Type: " + curPlace.getType());
-        menu.getMenu().add("Change");
-        menu.getMenu().add("Skip");
-
-        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                Toast.makeText(
-                        ViewTourActivity.this.getApplicationContext(),
-                        item.getTitle(),
-                        Toast.LENGTH_LONG
-                ).show();
-
-                if (item.getTitle().equals("Skip")) {
-                    AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);
-                    builder1.setMessage("Would you like to skip this?");
-                    builder1.setCancelable(true);
-
-                    builder1.setPositiveButton(
-                            "Yes",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_SKIP);
-                                    ViewTourActivity.this.getIntent().putExtra(ActivityHelper.PLACE_ID, curPlaceId);
-                                    ViewTourActivity.this.finish();
-                                    startActivity(ViewTourActivity.this.getIntent());
-                                }
-                            });
-
-                    builder1.setNegativeButton(
-                            "No",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-
-                    AlertDialog alert11 = builder1.create();
-                    alert11.show();
-
-
-                }
-                if (item.getTitle().equals("Change")) {
-
-                    AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);
-                    builder1.setMessage("Would you like to change this destination?");
-                    builder1.setCancelable(true);
-
-                    builder1.setPositiveButton(
-                            "Yes",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    String placeType = curPlace.getType();
-                                    Intent intent;
-                                    if (placeType.equalsIgnoreCase("Accommodation")) {
-                                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), AccommodationListActivity.class);
-                                    } else if (placeType.equalsIgnoreCase("Restaurant")) {
-                                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), RestaurantListActivity.class);
-                                    } else {
-                                        intent = new Intent(ViewTourActivity.this.getApplicationContext(), PlaceSelectionActivity.class);
-                                    }
-                                    intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_PLACE_CHANGED);
-                                    intent.putExtra(ActivityHelper.CITY_ID, cityId);
-                                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
-                                    intent.putExtra(ActivityHelper.START_TIME, strStartTime);
-                                    intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
-                                    startActivity(intent);
-                                    ViewTourActivity.this.finish();
-                                }
-                            });
-
-                    builder1.setNegativeButton(
-                            "No",
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-
-                    AlertDialog alert11 = builder1.create();
-                    alert11.show();
-
-                }
-                return true;
-            }
-        });
-
-        menu.show();
-
-    }*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -1137,8 +1022,15 @@ public class ViewTourActivity extends AppCompatActivity {
         TransportView transportView = (TransportView) v;
         PopupMenu menu = new PopupMenu(this.getApplicationContext(), v);
 
-        final String curPlaceId = (String) transportView.getTag();
-
+        String strTag = (String) transportView.getTag();
+        final String curPlaceId = strTag.substring(0,strTag.indexOf(":"));
+        String strIsCar = strTag.substring(strTag.indexOf(":") + 1);
+        String requiredTransportType = "CAR";
+        if (strIsCar.equalsIgnoreCase("TRUE")) {
+            requiredTransportType = "BUS";
+        } else {
+            requiredTransportType = "CAR";
+        }
 
         HashMap<String, Transport> transportsHash = transportView.getTravel().getTransports();
         List<Transport> transports = new ArrayList<Transport>(transportsHash.values());
@@ -1146,26 +1038,27 @@ public class ViewTourActivity extends AppCompatActivity {
         String transName, transDist, transCost, transTime;
         int index = 0;
         for (Transport transport : transports) {
-            transName = transport.getName();
-            if (transName == null) transName = "";
+            if (transport.getType().equalsIgnoreCase(requiredTransportType)) {
+                transName = transport.getName();
+                if (transName == null) transName = "";
 
-            transCost = transport.getCost() + "";
-            transCost = transCost.substring(0, transCost.length() - 3) + "," +
-                    transCost.substring(transCost.length() - 3);
-            transCost = transCost + "원";
+                transCost = transport.getCost() + "";
+                transCost = transCost.substring(0, transCost.length() - 3) + "," +
+                        transCost.substring(transCost.length() - 3);
+                transCost = transCost + "원";
 
-            transDist = ((float) transport.getDistance()) / 1000 + "Km";
-            transTime = transport.getTime() + "분";
+                transDist = String.format("%.1f", (float)transport.getDistance() / 1000) + "Km";
+                transTime = transport.getTime() + "분";
 
-            strOption = transport.getType() + " " + transName + ": " + transDist + "/" + transTime + "/" + transCost;
-            menu.getMenu().add(strOption);
-            Intent menuItemIntent = new Intent();
-            menuItemIntent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
-            menu.getMenu().getItem(index).setIntent(menuItemIntent);
-            index++;
-
+                strOption = "CHANGE: " +  transport.getType().toUpperCase() +   "(" + transDist + "/" + transTime + "/약" + transCost + ")";
+                menu.getMenu().add(strOption);
+                Intent menuItemIntent = new Intent();
+                menuItemIntent.putExtra(ActivityHelper.CUR_PLACE_ID, curPlaceId);
+                menu.getMenu().getItem(index).setIntent(menuItemIntent);
+                index++;
+            }
         }
-        menu.getMenu().add("Add Place");
+        menu.getMenu().add("ADD PLACE");
         menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -1180,11 +1073,11 @@ public class ViewTourActivity extends AppCompatActivity {
                 String selectedItem = item.getTitle().toString();
 
 
-                if (selectedItem.contains(":")) {
+                if (selectedItem.contains("CHANGE")) {
                     AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);
                     builder1.setMessage("Would you like to change another transport?");
                     builder1.setCancelable(true);
-                    final String transportType = selectedItem.substring(0, selectedItem.indexOf(":"));
+                    final String transportType = selectedItem.substring("CHANGE: ".length(), selectedItem.indexOf("(")).trim();
                     Intent intent = item.getIntent();
                     final String curPID = intent.getStringExtra(ActivityHelper.CUR_PLACE_ID);
 
@@ -1192,16 +1085,25 @@ public class ViewTourActivity extends AppCompatActivity {
                             "Yes",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
+
                                     Intent intent = new Intent(ViewTourActivity.this.getApplicationContext(), ViewTourActivity.class);
                                     intent.putExtra(ActivityHelper.REFRESH_MODE, ActivityHelper.REFRESH_SPECIFIC_TRANSPORT_CHANGED);
-                                    if (transportType.contains("Bus")) {
+                                    TransportChangedLog  transportChangedLog = new TransportChangedLog();
+
+                                    if (transportType.contains("Bus".toUpperCase())) {
                                         intent.putExtra(ActivityHelper.TRANSPORT_CHANGED_TYPE, ActivityHelper.REFRESH_BUS_SELECTED);
+                                        transportChangedLog.addData(curPID, "BUS" );
 
                                     } else {
                                         intent.putExtra(ActivityHelper.TRANSPORT_CHANGED_TYPE, ActivityHelper.REFRESH_CAR_SELECTED);
+                                        transportChangedLog.addData(curPID, "CAR");
 
                                     }
+                                    intent.putExtra(ActivityHelper.TOUR_ID, tourId);
+                                    intent.putExtra(ActivityHelper.START_TIME, strStartTime);
                                     intent.putExtra(ActivityHelper.CUR_PLACE_ID, curPID);
+                                    //intent.putExtra("LOG", transportChangedLog);
+
                                     startActivity(intent);
                                     ViewTourActivity.this.finish();
                                 }
@@ -1221,7 +1123,7 @@ public class ViewTourActivity extends AppCompatActivity {
                 }
 
 
-                if (item.getTitle().equals("Add Place")) {
+                if (item.getTitle().equals("ADD PLACE")) {
 
 
                     AlertDialog.Builder builder1 = new AlertDialog.Builder(ViewTourActivity.this);

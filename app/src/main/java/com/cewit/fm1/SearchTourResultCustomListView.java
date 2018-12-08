@@ -14,6 +14,7 @@ import com.cewit.fm1.models.Tour;
 import com.cewit.fm1.util.Utility;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Taeyu Im on 18. 5. 6.
@@ -44,6 +45,33 @@ public class SearchTourResultCustomListView extends ArrayAdapter<Tour> {
             viewHolder = (ViewHolder) r.getTag(); //get the store view
         }
         Tour tour = dataSet.get(position);
+
+        int imageId = R.drawable.jeju_island;
+
+        String strImageId = "jeju003";
+
+            Random rand = new Random();
+            int ra = rand.nextInt() % 3;
+            switch (ra) {
+                case 0:
+                    strImageId = "jeju001";
+                    break;
+                case 1:
+                    strImageId = "jeju002";
+                    break;
+                case 2:
+                    strImageId = "jeju000";
+                    break;
+                case 3:
+                    strImageId = "jeju004";
+                    break;
+            }
+        if (context.getResources().getIdentifier(strImageId, "drawable", context.getPackageName()) != 0) {
+            imageId =context.getResources().getIdentifier(strImageId, "drawable", context.getPackageName());
+        }
+        viewHolder.ivTourImage.setImageResource(imageId);
+
+
         if(tour.getImageIds() != null && tour.getImageIds().size()>0) {
 //             viewHolder.ivTourImage.setImageResource(Integer.parseInt(tour.getImageIds().get(0))); //TODO will be checked later
             viewHolder.ivTourImage.setImageResource(R.drawable.jeju_island);

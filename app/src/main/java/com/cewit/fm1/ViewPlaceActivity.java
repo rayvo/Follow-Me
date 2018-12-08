@@ -119,7 +119,11 @@ public class ViewPlaceActivity extends AppCompatActivity {
                         });
                         tvNumber.setText(place.getContact());
                         tvType.setText(place.getType());
+
                         tvInfo.setText(place.getInfo());
+
+                        //tvInfo.setText(place.getInfo());
+
                     }
                 }
             } //end data change of tour query
