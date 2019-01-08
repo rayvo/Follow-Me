@@ -10,7 +10,7 @@
         android:id="@+id/tvMessage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="There is no available tour met the search conditions! \n Please try again"
+        android:text="Searching... \nPlease wait!"
         android:textStyle="bold"
         android:textSize="25dp"
         android:visibility="visible"/>
